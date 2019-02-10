@@ -87,7 +87,7 @@ function keyDownHandler(e) {
 }
 
 function keyUpHandler(e) {
-	if(e.keyCode == 40) {
+	if(e.keyCode == 40 ||　e.keyCode == 83) {
 		downPressed = false;
 		down = true;
 	}
