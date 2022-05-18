@@ -4,10 +4,10 @@ var FPS = 60;//FPS降低，100時會有group偵測錯誤的bug
 var slowScale = 1;//緩速倍率，值越大放越慢
 var gameTime = 180;//遊戲時間(秒)
 var unit = 20;
-var edgeX = unit*column;
-var edgeY = unit*(row-2);
-var blockPerSec = unit/FPS;
-var animationFall = 200*blockPerSec;
+var edgeX = unit * column;
+var edgeY = unit * (row - 2);
+var blockPerSec = unit / FPS;
+var animationFall = 200 * blockPerSec;
 var column = 16;
 var row = 12;
 var adjustX = 4;
@@ -19,7 +19,7 @@ var gameState = {
 	'result': 3
 }
 
-var dropStd = FPS/2;
+var dropStd = FPS / 2;
 var moveStd = dropStd - 10;
 var shade = 3;//effect
 var scanner = false;
@@ -47,67 +47,67 @@ console.log('P to pause');
 console.log('K to end game');
 console.log('Z to speed up');
 
-function keyPressHandler(e){
-	if(e.keyCode == 32) {
-		if(state == gameState.starting){
+function keyPressHandler(e) {
+	if (e.keyCode == 32) {
+		if (state == gameState.starting) {
 			state = gameState.counting;
 			effect = new controlEffect();
 			waitCounter = 4 * FPS;
 			grid = new objGrid();
 		}
-		else if(state == gameState.result){
+		else if (state == gameState.result) {
 			state = gameState.starting;
 			gameClear();
 		}
 	}
 }
-	
+
 function keyDownHandler(e) {
-	if(pause) return;
-	if(e.keyCode == 37 || e.keyCode == 65) {
-		if(cube) cube.moveLeft();
+	if (pause) return;
+	if (e.keyCode == 37 || e.keyCode == 65) {
+		if (cube) cube.moveLeft();
 	}
-	if(e.keyCode == 38 || e.keyCode == 87) {//up
-		if(cube) cube.rotate();
+	if (e.keyCode == 38 || e.keyCode == 87) {//up
+		if (cube) cube.rotate();
 	}
-	if(e.keyCode == 39 || e.keyCode == 68) {
-		if(cube) cube.moveRight();
+	if (e.keyCode == 39 || e.keyCode == 68) {
+		if (cube) cube.moveRight();
 	}
-	if(e.keyCode == 40 ||　e.keyCode == 83) {
+	if (e.keyCode == 40 || e.keyCode == 83) {
 		downPressed = true;
 	}
-	if(e.keyCode == 75) {
-		if(state != gameState.gaming) return;
+	if (e.keyCode == 75) {
+		if (state != gameState.gaming) return;
 		draw();
 		gameResult();
 	}
-	if(e.keyCode == 90) {
+	if (e.keyCode == 90) {
 		main();
 	}
 }
 
 function keyUpHandler(e) {
-	if(e.keyCode == 40 ||　e.keyCode == 83) {
+	if (e.keyCode == 40 || e.keyCode == 83) {
 		downPressed = false;
 		down = true;
 	}
-	if(e.keyCode == 80) {
-		pause = !pause;								
+	if (e.keyCode == 80) {
+		pause = !pause;
 	}
 }
 
-function gameInit(){
-	dropStd = FPS/2;
+function gameInit() {
+	dropStd = FPS / 2;
 	moveStd = dropStd - 10;
 	scanner = new line();
-	if(!grid) grid = new objGrid();
+	if (!grid) grid = new objGrid();
 	cube = new objCube();
 	group = new objGroupControl();
 	state = gameState.gaming;//starting gaming
 	waitCounter = gameTime * FPS;
 }
 
-function gameClear(){
+function gameClear() {
 	grid = false;
 	cube = false;
 	group = false;
@@ -117,49 +117,49 @@ function gameClear(){
 	downPressed = false;
 }
 
-function gameResult(){
+function gameResult() {
 	console.log('End');
 	//group.finalCount();
 	state = gameState.result;
 	cube = false;
 	scanner = false;
-	waitCounter = FPS*10;
+	waitCounter = FPS * 10;
 }
 
 function resizeCanvas() {
 	var w_width = $(window).width(), w_height = $(window).height();
-	unit = Math.min( Math.floor(w_width/24) , Math.floor(w_height/16) );
-	edgeX = unit*column;
-	edgeY = unit*(row-2);
-	$('#myCanvas').attr("width", unit*24).attr("height", unit*16);
-	blockPerSec = unit/FPS;
-	animationFall = 200*blockPerSec;
+	unit = Math.min(Math.floor(w_width / 24), Math.floor(w_height / 16));
+	edgeX = unit * column;
+	edgeY = unit * (row - 2);
+	$('#myCanvas').attr("width", unit * 24).attr("height", unit * 16);
+	blockPerSec = unit / FPS;
+	animationFall = 200 * blockPerSec;
 }
 
 resizeCanvas();
 
-$(window).resize(function(){
+$(window).resize(function () {
 	resizeCanvas();
-	if(pause) draw();
+	if (pause) draw();
 });
 
-function drawSingleBlock(color, x, y, shadeOn, transparency){
+function drawSingleBlock(color, x, y, shadeOn, transparency) {
 	ctx.beginPath();
-	switch(color){
+	switch (color) {
 		case 'C1':
-			if(transparency) ctx.fillStyle = grid.C1T;
+			if (transparency) ctx.fillStyle = grid.C1T;
 			else ctx.fillStyle = grid.C1;
 			break;
 		case 'C2':
-			if(transparency) ctx.fillStyle = grid.C2T;
+			if (transparency) ctx.fillStyle = grid.C2T;
 			else ctx.fillStyle = grid.C2;
 			break;
 	}
-	ctx.rect(x*unit+1, y*unit+1, unit-2, unit-2);
+	ctx.rect(x * unit + 1, y * unit + 1, unit - 2, unit - 2);
 	ctx.fill();
 	ctx.closePath();
-	if(shadeOn === false) return;
-	switch(color){
+	if (shadeOn === false) return;
+	switch (color) {
 		case 'C1':
 			ctx.strokeStyle = grid.C1Shade;
 			break;
@@ -167,9 +167,9 @@ function drawSingleBlock(color, x, y, shadeOn, transparency){
 			ctx.strokeStyle = grid.C2Shade;
 			break;
 	}
-	ctx.lineWidth = shade+1;
+	ctx.lineWidth = shade + 1;
 	ctx.beginPath();
-	ctx.rect(x*unit+shade, y*unit+shade, unit-2*shade, unit-2*shade);
+	ctx.rect(x * unit + shade, y * unit + shade, unit - 2 * shade, unit - 2 * shade);
 	/*ctx.moveTo((x)*unit+shade, (y)*unit+shade);
 	ctx.lineTo((x+1)*unit-shade, (y)*unit+shade);
 	ctx.lineTo((x+1)*unit-shade, (y+1)*unit-shade);
@@ -179,95 +179,95 @@ function drawSingleBlock(color, x, y, shadeOn, transparency){
 	ctx.closePath();
 }
 
-function drawGrid(){
+function drawGrid() {
 	ctx.strokeStyle = 'rgba(77, 77, 77, 1)';
 	ctx.lineWidth = 2;
-	for( var c=0; c<column + 1; c++ ){
+	for (var c = 0; c < column + 1; c++) {
 		ctx.beginPath();
-		ctx.moveTo((adjustX+c)*unit, (adjustY+2)*unit); ctx.lineTo((adjustX+c)*unit, (adjustY+2)*unit + edgeY);
+		ctx.moveTo((adjustX + c) * unit, (adjustY + 2) * unit); ctx.lineTo((adjustX + c) * unit, (adjustY + 2) * unit + edgeY);
 		ctx.stroke();
 		ctx.closePath();
 	}
-	
-	for( var r=2; r<row + 1; r++ ){
+
+	for (var r = 2; r < row + 1; r++) {
 		ctx.beginPath();
-		ctx.moveTo(adjustX*unit, (adjustY+r)*unit); ctx.lineTo(adjustX*unit + edgeX, (adjustY+r)*unit);
+		ctx.moveTo(adjustX * unit, (adjustY + r) * unit); ctx.lineTo(adjustX * unit + edgeX, (adjustY + r) * unit);
 		ctx.stroke();
 		ctx.closePath();
 	}
 }
 
-function draw(){
+function draw() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	drawGrid();
-	if(grid) grid.draw();
-	if(cube) cube.draw();
-	if(group) group.draw();
+	if (grid) grid.draw();
+	if (cube) cube.draw();
+	if (group) group.draw();
 	//if(grid) grid.drawGroup();
-	if(scanner) scanner.draw();
+	if (scanner) scanner.draw();
 	effect.draw();
-	
+
 }
 
-function main(){
+function main() {
 	draw();
-	
-	switch(state){
+
+	switch (state) {
 		case gameState.starting:
 			/*if(waitCounter % FPS == 0){
 				waitCounter = 0;
 				effect.effectList[effect.effectList.length] = {type: 2, frame: FPS, x: 3*unit, y: 9.8*unit, str: 'Press space to start'};
 			}
 				waitCounter ++;*/
-			effect.effectList[effect.effectList.length] = {type: 2, frame: 2, x: 3*unit, y: 9.8*unit, str: 'Press space to start'};
+			effect.effectList[effect.effectList.length] = { type: 2, frame: 2, x: 3 * unit, y: 9.8 * unit, str: 'Press space to start' };
 			break;
 		case gameState.counting:
 			effect.countDown(waitCounter);
-			if(pause) return;
-			waitCounter --;
-			if(waitCounter == 0){
+			if (pause) return;
+			waitCounter--;
+			if (waitCounter == 0) {
 				gameInit();
 			}
 			break;
 		case gameState.gaming:
-			if(pause) return;
-			if(downPressed){
-				if(down === true) down = 2;
-				if(cube && down == 2) cube.moveDown();
+			if (pause) return;
+			if (downPressed) {
+				if (down === true) down = 2;
+				if (cube && down == 2) cube.moveDown();
 			}
-			if(waitCounter % FPS == 0){
-				if(waitCounter != 0){
-					effect.effectList[effect.effectList.length] = {type: 2, frame: FPS, x: 20.3*unit, y: 5.8*unit, str: waitCounter/FPS};
+			if (waitCounter % FPS == 0) {
+				if (waitCounter != 0) {
+					effect.effectList[effect.effectList.length] = { type: 2, frame: FPS, x: 20.3 * unit, y: 5.8 * unit, str: waitCounter / FPS };
 				}
-				else{
-					effect.effectList[effect.effectList.length] = {type: 1, frame: FPS, x: 7.5*unit, y: 9.8*unit, str: 'Time\'s up'};
+				else {
+					effect.effectList[effect.effectList.length] = { type: 1, frame: FPS, x: 7.5 * unit, y: 9.8 * unit, str: 'Time\'s up' };
 					gameResult();
 				}
 			}
-			waitCounter --;
+			waitCounter--;
 			cube.fall();
 			group.check();
 			scanner.scanning();
 			break;
 		case gameState.result:
-			if(pause) return;
-			if(waitCounter % FPS == 0){
-				switch(waitCounter/FPS){
+			if (pause) return;
+			if (waitCounter % FPS == 0) {
+				switch (waitCounter / FPS) {
 					case 8:
 						group.finalCount();
-						if(group.checkList.length){
+						if (group.checkList.length) {
 							waitCounter += FPS
 						}
 						break;
 				}
 			}
-			if(waitCounter) waitCounter --;
+			if (waitCounter) waitCounter--;
 			//this.word(this.effectList[i].str, this.effectList[i].x, this.effectList[i].y, this.effectList[i].frame,false);
 			break;
 	}
 }
 
-setInterval( main, 1000*slowScale/FPS );
+setInterval(main, 1000 * slowScale / FPS);
 
 /*
 
