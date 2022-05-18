@@ -127,7 +127,7 @@ function gameResult() {
 }
 
 function resizeCanvas() {
-	var w_width = $(window).width(), w_height = $(window).height();
+	let w_width = $(window).width(), w_height = $(window).height();
 	unit = Math.min(Math.floor(w_width / 24), Math.floor(w_height / 16));
 	edgeX = unit * column;
 	edgeY = unit * (row - 2);
@@ -182,14 +182,14 @@ function drawSingleBlock(color, x, y, shadeOn, transparency) {
 function drawGrid() {
 	ctx.strokeStyle = 'rgba(77, 77, 77, 1)';
 	ctx.lineWidth = 2;
-	for (var c = 0; c < column + 1; c++) {
+	for (let c = 0; c < column + 1; c++) {
 		ctx.beginPath();
 		ctx.moveTo((adjustX + c) * unit, (adjustY + 2) * unit); ctx.lineTo((adjustX + c) * unit, (adjustY + 2) * unit + edgeY);
 		ctx.stroke();
 		ctx.closePath();
 	}
 
-	for (var r = 2; r < row + 1; r++) {
+	for (let r = 2; r < row + 1; r++) {
 		ctx.beginPath();
 		ctx.moveTo(adjustX * unit, (adjustY + r) * unit); ctx.lineTo(adjustX * unit + edgeX, (adjustY + r) * unit);
 		ctx.stroke();

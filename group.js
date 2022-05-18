@@ -5,8 +5,8 @@ var objGroupControl = function () {
 }
 //{group: false, show: true, color: this.Position[i].c};
 objGroupControl.prototype.findGroupIndex = function (id) {
-	var l = this.groupList.length;
-	for (var i = 0; i < l; i++) {
+	let l = this.groupList.length;
+	for (let i = 0; i < l; i++) {
 		if (this.groupList[i].id == id) return i;
 	}
 	return -1;
@@ -24,13 +24,13 @@ objGroupControl.prototype.addCheck = function (x, y) {
 }
 
 objGroupControl.prototype.scanned = function (id) {
-	//var doDelete = false;
+	//let doDelete = false;
 	//console.log(this.groupList.length);
-	var l = this.groupList.length;
+	let l = this.groupList.length;
 	//console.log(l);
-	var l2 = scanner.scanningId.length, l3 = scanner.preDelete.length;
-	for (var i = 0; i < l; i++) {
-		var index = { n: Math.floor(scanner.X / unit), r: scanner.X / unit };
+	let l2 = scanner.scanningId.length, l3 = scanner.preDelete.length;
+	for (let i = 0; i < l; i++) {
+		let index = { n: Math.floor(scanner.X / unit), r: scanner.X / unit };
 		//console.log(this.groupList[i].id+'  '+this.groupList[i].scanned+' '+(index.r));
 		if (this.groupList[i].scanned === false && this.groupList[i].start == index.n && index.r - this.groupList[i].start < 1.5) {
 
@@ -43,12 +43,12 @@ objGroupControl.prototype.scanned = function (id) {
 	l = this.groupList.length;
 	l2 = scanner.scanningId.length;
 	l3 = scanner.preDelete.length;
-	for (var i = 0; i < l; i++) {//scanningId若不是空的就不adjust();
-		var index = { n: Math.floor(scanner.X / unit), r: scanner.X / unit };
+	for (let i = 0; i < l; i++) {//scanningId若不是空的就不adjust();
+		let index = { n: Math.floor(scanner.X / unit), r: scanner.X / unit };
 		if (this.groupList[i].scanned === true && this.groupList[i].end < index.n) {
 			//console.log('do '+this.groupList[i].id);
 			//console.log('delete '+this.groupList[i].id+'??');
-			var ind = scanner.scanningId.indexOf(this.groupList[i].id);
+			let ind = scanner.scanningId.indexOf(this.groupList[i].id);
 			//console.log(ind);
 			if (ind != -1) {
 				//console.log('transfering...');
@@ -59,9 +59,9 @@ objGroupControl.prototype.scanned = function (id) {
 			}
 			if (l2 == 0 && l3 > 0) {
 				//console.log('clear');
-				for (var j = 0; j < l3; j++) {
+				for (let j = 0; j < l3; j++) {
 					//console.log(this.findGroupIndex(scanner.preDelete[j]));
-					var score = this.groupList[this.findGroupIndex(scanner.preDelete[j])].score;
+					let score = this.groupList[this.findGroupIndex(scanner.preDelete[j])].score;
 					scanner.Score += score;
 					grid.score += score;
 					this.deleteGroup(scanner.preDelete[j]);
@@ -81,15 +81,15 @@ objGroupControl.prototype.scanned = function (id) {
 }
 
 objGroupControl.prototype.addMember = function (x, y, id) {
-	var tmp = this.findGroupIndex(id), e = true;
-	var a = this.groupList[tmp];
-	var l = a.member.length;
+	let tmp = this.findGroupIndex(id), e = true;
+	let a = this.groupList[tmp];
+	let l = a.member.length;
 	//console.log(tmp);
 	//if(tmp !== false){
 	//tmp = this.groupList[tmp];
 	//this.groupList[tmp].member[this.groupList[tmp].member.length] = {x: x, y: y};
 	//Y優先，Y相同，再比X
-	for (var i = 0; i < l; i++) {
+	for (let i = 0; i < l; i++) {
 		if (a.member[i].y > y) {
 			a.member.splice(i, 0, { x: x, y: y });
 			//console.log('Y greater');
@@ -129,8 +129,8 @@ objGroupControl.prototype.addMember = function (x, y, id) {
 }
 
 objGroupControl.prototype.mergeGroup = function (x, y, identified) {
-	var ind1 = this.findGroupIndex(identified[0]), ind2 = this.findGroupIndex(identified[1]);//index
-	var minor = -1, major = -1;
+	let ind1 = this.findGroupIndex(identified[0]), ind2 = this.findGroupIndex(identified[1]);//index
+	let minor = -1, major = -1;
 
 	if (this.groupList[ind1].id > this.groupList[ind2].id) {//id2併入id1，砍掉id2
 		minor = identified[1];
@@ -141,8 +141,8 @@ objGroupControl.prototype.mergeGroup = function (x, y, identified) {
 		major = identified[1];
 	}
 
-	var minorInd = { a: scanner.scanningId.indexOf(minor), b: scanner.preDelete.indexOf(minor) };
-	var majorInd = { a: scanner.scanningId.indexOf(major), b: scanner.preDelete.indexOf(major) };
+	let minorInd = { a: scanner.scanningId.indexOf(minor), b: scanner.preDelete.indexOf(minor) };
+	let majorInd = { a: scanner.scanningId.indexOf(major), b: scanner.preDelete.indexOf(major) };
 	if (minorInd.a != -1 || majorInd.a != -1) {
 		if (minorInd.a != -1) scanner.scanningId.splice(minorInd.a, 1);
 		else if (minorInd.b != -1) scanner.preDelete.splice(minorInd.b, 1);
@@ -163,7 +163,7 @@ objGroupControl.prototype.mergeGroup = function (x, y, identified) {
 
 	if (minor == identified[1]) {//id2併入id1，砍掉id2
 		this.addMember(x, y, identified[0]);
-		for (var i = 0; i < this.groupList[ind2].score; i++) {
+		for (let i = 0; i < this.groupList[ind2].score; i++) {
 			this.addMember(this.groupList[ind2].member[i].x, this.groupList[ind2].member[i].y, identified[0]);
 		}
 		if (this.groupList[ind2].scanned) this.groupList[ind1].scanned = true;
@@ -171,7 +171,7 @@ objGroupControl.prototype.mergeGroup = function (x, y, identified) {
 	}
 	else {//id1併入id2，砍掉id1
 		this.addMember(x, y, identified[1]);
-		for (var i = 0; i < this.groupList[ind1].score; i++) {
+		for (let i = 0; i < this.groupList[ind1].score; i++) {
 			this.addMember(this.groupList[ind1].member[i].x, this.groupList[ind1].member[i].y, identified[1]);
 		}
 		if (this.groupList[ind1].scanned) this.groupList[ind2].scanned = true;
@@ -181,20 +181,20 @@ objGroupControl.prototype.mergeGroup = function (x, y, identified) {
 }
 
 objGroupControl.prototype.unGroup = function (id) {
-	var gpId = this.findGroupIndex(id);
+	let gpId = this.findGroupIndex(id);
 	if (gpId == -1) return;
-	var gp = this.groupList[gpId];
-	var l = gp.member.length;
-	for (var i = 0; i < l; i++) {
-		var x = gp.member[i].x, y = gp.member[i].y;
+	let gp = this.groupList[gpId];
+	let l = gp.member.length;
+	for (let i = 0; i < l; i++) {
+		let x = gp.member[i].x, y = gp.member[i].y;
 		grid.unGroup(gp.member[i].x, gp.member[i].y);
 	}
 	this.groupList.splice(gpId, 1);
 }
 
 objGroupControl.prototype.makeGroup = function (x, y) {
-	var identified = grid.identifyGroup(x, y);
-	var percentage = (scanner.X / unit - x) / 2;
+	let identified = grid.identifyGroup(x, y);
+	let percentage = (scanner.X / unit - x) / 2;
 	if (percentage > 1) percentage = 0;
 	//console.log('    group '+x+' '+y);
 
@@ -213,7 +213,7 @@ objGroupControl.prototype.makeGroup = function (x, y) {
 				console.log('recheck');
 				return;
 			}*/
-			var tmp = 1;
+			let tmp = 1;
 			while (this.findGroupIndex(tmp) != -1) tmp++;
 			grid.fillGroup(x, y, tmp);
 			this.groupList[this.groupList.length] = { id: tmp, start: x, end: x + 1, score: 1, member: [{ x: x, y: y }], scanned: false };
@@ -241,8 +241,8 @@ objGroupControl.prototype.makeGroup = function (x, y) {
 			this.mergeGroup(x, y, identified);
 
 			effect.effectList[effect.effectList.length] = { type: 0, frame: FPS / 2, x: x, y: y };
-			/*var ind1 = this.findGroupIndex(identified[0]), ind2 = this.findGroupIndex(identified[1]);//index
-			var minor = -1, major = -1;
+			/*let ind1 = this.findGroupIndex(identified[0]), ind2 = this.findGroupIndex(identified[1]);//index
+			let minor = -1, major = -1;
 			
 			if(this.groupList[ind1].id > this.groupList[ind2].id){//id2併入id1，砍掉id2
 				minor = identified[1];
@@ -253,8 +253,8 @@ objGroupControl.prototype.makeGroup = function (x, y) {
 				major = identified[1];
 			}
 			
-			var minorInd = {a: scanner.scanningId.indexOf(minor), b: scanner.preDelete.indexOf(minor)};
-			var majorInd = {a: scanner.scanningId.indexOf(major), b: scanner.preDelete.indexOf(major)};
+			let minorInd = {a: scanner.scanningId.indexOf(minor), b: scanner.preDelete.indexOf(minor)};
+			let majorInd = {a: scanner.scanningId.indexOf(major), b: scanner.preDelete.indexOf(major)};
 			if(minorInd.a != -1 || majorInd.a != -1){
 				if(minorInd.a != -1) scanner.scanningId.splice(minorInd.a, 1);
 				else if(minorInd.b != -1) scanner.preDelete.splice(minorInd.b, 1);
@@ -275,7 +275,7 @@ objGroupControl.prototype.makeGroup = function (x, y) {
 			
 			if(minor == identified[1]){//id2併入id1，砍掉id2
 				this.addMember(x, y, identified[0]);
-				for(var i = 0; i < this.groupList[ind2].score; i ++){
+				for(let i = 0; i < this.groupList[ind2].score; i ++){
 					this.addMember(this.groupList[ind2].member[i].x, this.groupList[ind2].member[i].y, identified[0]);
 				}
 				if(this.groupList[ind2].scanned) this.groupList[ind1].scanned = true;
@@ -283,7 +283,7 @@ objGroupControl.prototype.makeGroup = function (x, y) {
 			}
 			else{//id1併入id2，砍掉id1
 				this.addMember(x, y, identified[1]);
-				for(var i = 0; i < this.groupList[ind1].score; i ++){
+				for(let i = 0; i < this.groupList[ind1].score; i ++){
 					this.addMember(this.groupList[ind1].member[i].x, this.groupList[ind1].member[i].y, identified[1]);
 				}
 				if(this.groupList[ind1].scanned) this.groupList[ind2].scanned = true;
@@ -304,12 +304,12 @@ objGroupControl.prototype.makeGroup = function (x, y) {
 }
 
 objGroupControl.prototype.deleteGroup = function (id) {//刪group & all block inside
-	var gpId = this.findGroupIndex(id);
+	let gpId = this.findGroupIndex(id);
 	if (gpId == -1) return;
-	var gp = this.groupList[gpId];
-	var l = gp.member.length;
-	for (var i = 0; i < l; i++) {
-		var x = gp.member[i].x, y = gp.member[i].y;
+	let gp = this.groupList[gpId];
+	let l = gp.member.length;
+	for (let i = 0; i < l; i++) {
+		let x = gp.member[i].x, y = gp.member[i].y;
 		effect.effectList.push({ type: 3, frame: FPS / 5, x: x + adjustX, y: y + adjustY });
 		effect.effectList.push({ type: 3, frame: FPS / 5, x: x + 1 + adjustX, y: y + adjustY });
 		effect.effectList.push({ type: 3, frame: FPS / 5, x: x + adjustX, y: y + 1 + adjustY });
@@ -353,8 +353,8 @@ function drawSingleGroup(x, y) {
 
 function drawScannedGroup(x, y, X) {
 	if (X <= x) return;
-	var tmp = [{ x: x, y: y }, { x: x, y: y + 1 }, { x: x + 1, y: y }, { x: x + 1, y: y + 1 }];
-	for (var i = 0; i < 4; i++) {
+	let tmp = [{ x: x, y: y }, { x: x, y: y + 1 }, { x: x + 1, y: y }, { x: x + 1, y: y + 1 }];
+	for (let i = 0; i < 4; i++) {
 		if (X > tmp[i].x) {
 			ctx.beginPath();
 			ctx.fillStyle = 'rgb(20, 20, 20)';
@@ -397,26 +397,22 @@ function drawScannedGroup(x, y, X) {
 }
 
 objGroupControl.prototype.draw = function () {
-	var l = this.groupList.length;
-	for (var i = 0; i < l; i++) {
-		var l2 = this.groupList[i].member.length;
-		for (var j = 0; j < l2; j++)
+	let l = this.groupList.length;
+	for (let i = 0; i < l; i++) {
+		let l2 = this.groupList[i].member.length;
+		for (let j = 0; j < l2; j++)
 			drawSingleGroup(this.groupList[i].member[j].x, this.groupList[i].member[j].y);
 	}
-	for (var i = 0; i < l; i++) {
-		var l2 = this.groupList[i].member.length;
-		for (var j = 0; j < l2; j++)
+	for (let i = 0; i < l; i++) {
+		let l2 = this.groupList[i].member.length;
+		for (let j = 0; j < l2; j++)
 			if (this.groupList[i].scanned) drawScannedGroup(this.groupList[i].member[j].x, this.groupList[i].member[j].y, scanner.X / unit);
 	}
 }
 
 objGroupControl.prototype.check = function () {
-	/*while(this.checkList.length){
-		this.checkGroup(this.checkList[0].x, this.checkList[0].y);
-		this.checkList.splice(0, 1);
-	}*/
-	var l = this.checkList.length;
-	for (var i = 0; i < l; i++) {
+	let l = this.checkList.length;
+	for (let i = 0; i < l; i++) {
 		this.checkGroup(this.checkList[i].x, this.checkList[i].y);
 	}
 	this.checkList = this.recheckList;
@@ -426,12 +422,12 @@ objGroupControl.prototype.check = function () {
 objGroupControl.prototype.checkGroup = function (x, y) {
 	if (y == 11) return;
 	if (grid.g[y][x] === false) return;
-	var colorStd = grid.g[y][x].color;
-	var preMake = [];
+	let colorStd = grid.g[y][x].color;
+	let preMake = [];
 	//console.log('check '+x+' '+y+' '+colorStd);
 	//identifyGroup
 	if (x - 1 >= 0) {
-		var tmp = [grid.g[y][x - 1], grid.g[y + 1][x - 1], grid.g[y + 1][x]];
+		let tmp = [grid.g[y][x - 1], grid.g[y + 1][x - 1], grid.g[y + 1][x]];
 		//console.log('  left');
 		if (tmp[0] && tmp[1] && tmp[2]) {
 			//console.log(grid.g[y][x-1].color+' '+grid.g[y+1][x-1].color+' '+grid.g[y+1][x].color);
@@ -454,7 +450,7 @@ objGroupControl.prototype.checkGroup = function (x, y) {
 		//else console.log('   nonExist');
 	}
 	if (x + 1 < 16) {
-		var tmp = [grid.g[y][x + 1], grid.g[y + 1][x + 1], grid.g[y + 1][x]];
+		let tmp = [grid.g[y][x + 1], grid.g[y + 1][x + 1], grid.g[y + 1][x]];
 		//console.log('  right');
 		if (tmp[0] && tmp[1] && tmp[2]) {
 			//console.log(grid.g[y][x+1].color+' '+grid.g[y+1][x+1].color+' '+grid.g[y+1][x].color);
@@ -480,9 +476,9 @@ objGroupControl.prototype.checkGroup = function (x, y) {
 
 objGroupControl.prototype.finalCount = function () {
 	this.check();
-	var score = 0;
-	var l = this.groupList.length;
-	for (var i = 0; i < l; i++) {
+	let score = 0;
+	let l = this.groupList.length;
+	for (let i = 0; i < l; i++) {
 		score += this.groupList[i].score;
 		this.deleteGroup(this.groupList[i].id);
 		l--;

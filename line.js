@@ -43,16 +43,16 @@ line.prototype.draw = function () {
 	if (pause || state != gameState.gaming) return;
 	this.X += this.Speed * blockPerSec;
 	if (this.X >= edgeX + unit * 0.3) {
-		var l = this.scanningId.length;
-		for (var i = 0; i < l; i++) {
+		let l = this.scanningId.length;
+		for (let i = 0; i < l; i++) {
 			this.preDelete[this.preDelete.length] = this.scanningId[i];
 		}
 		if (this.scanningId.length == 0 && this.preDelete.length > 0) {
 			//console.log('clear');
 			l = this.preDelete.length;
-			for (var j = 0; j < l; j++) {
+			for (let j = 0; j < l; j++) {
 				console.log(group.findGroupIndex(this.preDelete[j]));
-				var score = group.groupList[group.findGroupIndex(this.preDelete[j])].score;
+				let score = group.groupList[group.findGroupIndex(this.preDelete[j])].score;
 				this.Score += score;
 				grid.score += score;
 				group.deleteGroup(this.preDelete[j]);

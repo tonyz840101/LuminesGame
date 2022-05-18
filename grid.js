@@ -1,9 +1,9 @@
 var objGrid = function () {
 	this.g = [];
 	this.score = 0;
-	for (var r = 0; r < row; r++) {
+	for (let r = 0; r < row; r++) {
 		this.g[r] = [];
-		for (var c = 0; c < column; c++) {
+		for (let c = 0; c < column; c++) {
 			this.g[r][c] = false;
 		}
 	}
@@ -15,39 +15,39 @@ var objGrid = function () {
 	this.C2Shade = 'rgba(0, 0, 0, 0.25)';
 	this.falingBlock = [];
 	this.preList = [];
-	//var testList = [12, 0, 2, 6];
-	for (var i = 0; i < 4; i++) {
-		var tmp = Math.floor(Math.random() * 16);
-		//var tmp = testList[i];
+	//let testList = [12, 0, 2, 6];
+	for (let i = 0; i < 4; i++) {
+		let tmp = Math.floor(Math.random() * 16);
+		//let tmp = testList[i];
 		this.preList[i] = { tag: tmp, c: [] }
-		for (var j = 0; j < 4; j++) {
+		for (let j = 0; j < 4; j++) {
 			this.preList[i].c[j] = ((tmp % 2) == 1) ? 'C2' : 'C1';
 			tmp = Math.floor(tmp / 2);
 		}
 	}
 	this.preListDisplay = [];
-	for (var i = 0; i < 4; i++) {
+	for (let i = 0; i < 4; i++) {
 		this.preListDisplay[i] = [];
-		for (var j = 0; j < 4; j++) {
+		for (let j = 0; j < 4; j++) {
 			this.preListDisplay[i][j] = { show: true, color: this.preList[i].c[j] }
 		}
 	}
 }
 
 objGrid.prototype.nextBlock = function () {
-	var result = this.preList[0];
-	this.preList.splice(0, 1);
-	var tmp = Math.floor(Math.random() * 16);
+	let result = this.preList[0];
+	this.preList.shift();
+	let tmp = Math.floor(Math.random() * 16);
 	this.preList[3] = { tag: tmp, c: [] };
-	for (var i = 0; i < 4; i++) {
+	for (let i = 0; i < 4; i++) {
 		this.preList[3].c[i] = ((tmp % 2) == 1) ? 'C2' : 'C1';
 		tmp = Math.floor(tmp / 2);
 	}
 
-	var fallSpeed = (3 / FPS * 10) * -1;
-	for (var i = 0; i < 4; i++) {
-		var tmp1 = { x: 0, y: 0 };
-		var tmp2 = { x: 0, y: 0 };
+	let fallSpeed = (3 / FPS * 10) * -1;
+	for (let i = 0; i < 4; i++) {
+		let tmp1 = { x: 0, y: 0 };
+		let tmp2 = { x: 0, y: 0 };
 		switch (i) {
 			case 0:
 				tmp1.x = 1; tmp1.y = 2;
@@ -74,10 +74,10 @@ objGrid.prototype.nextBlock = function () {
 			source: 1
 		});
 	}
-	for (var i = 0; i < 4; i++) {
-		for (var j = 0; j < 4; j++) {
-			var tmp1 = { x: 0, y: 0 };
-			var tmp2 = { x: 0, y: 0 };
+	for (let i = 0; i < 4; i++) {
+		for (let j = 0; j < 4; j++) {
+			let tmp1 = { x: 0, y: 0 };
+			let tmp2 = { x: 0, y: 0 };
 			switch (j) {
 				case 0:
 					tmp1.x = 1; tmp1.y = (3 * i + 5);
@@ -111,8 +111,8 @@ objGrid.prototype.nextBlock = function () {
 }
 
 objGrid.prototype.drawGroup = function () {
-	for (var r = 2; r < row; r++) {
-		for (var c = 0; c < column; c++) {
+	for (let r = 2; r < row; r++) {
+		for (let c = 0; c < column; c++) {
 			if (this.g[r][c] !== false) {
 				if (this.g[r][c].group !== false) {
 					ctx.fillStyle = '#000000';
@@ -128,8 +128,8 @@ objGrid.prototype.draw = function () {
 	ctx.font = (unit * 2 + "px Microsoft JhengHei");
 	ctx.fillStyle = 'rgb(255, 255, 255)';
 	ctx.fillText(this.score, 20.3 * unit, 13 * unit);
-	for (var r = 0; r < row; r++) {
-		for (var c = 0; c < column; c++) {
+	for (let r = 0; r < row; r++) {
+		for (let c = 0; c < column; c++) {
 			if (this.g[r][c].show) {
 				drawSingleBlock(this.g[r][c].color, (c + adjustX), (r + adjustY), (this.g[r][c].group === false), false);
 			}
@@ -138,9 +138,9 @@ objGrid.prototype.draw = function () {
 	if (state != gameState.gaming) return;
 	//console.log(this.preListDisplay);
 
-	for (var i = 0; i < 4; i++) {
-		var tmp = this.preListDisplay[i];
-		for (var j = 0; j < 4; j++) {
+	for (let i = 0; i < 4; i++) {
+		let tmp = this.preListDisplay[i];
+		for (let j = 0; j < 4; j++) {
 			if (tmp[j].show) {
 				switch (j) {
 					case 0:
@@ -162,25 +162,25 @@ objGrid.prototype.draw = function () {
 	}
 	if (pause) return;
 	//{destination: {x: ,y: }, current: {x: ,y: }, fallSpeed: (unit), source:}//Json格式的樣版
-	var check = [];
-	var l = this.falingBlock.length;
-	for (var i = 0; i < l; i++) {//畫移動中的方塊
-		var curretObj = this.falingBlock[i];
+	let check = [];
+	let l = this.falingBlock.length;
+	for (let i = 0; i < l; i++) {//畫移動中的方塊
+		let curretObj = this.falingBlock[i];
 		//console.log(curretObj);
 		drawSingleBlock(curretObj.c, curretObj.current.x, curretObj.current.y, true, (curretObj.source == 0));
 		this.falingBlock[i].current.y += curretObj.fallSpeed;//繼續移動
 		if (((this.falingBlock[i].current.y >= curretObj.destination.y) && curretObj.source == 0) ||
 			((this.falingBlock[i].current.y <= curretObj.destination.y) && curretObj.source == 1)
 		) {//停止移動
-			var tmp = curretObj.destination;
+			let tmp = curretObj.destination;
 			if (curretObj.source == 0) {//grid 動畫
 				/*this.g[tmp.y-adjustY][tmp.x-adjustX].show = true;
 				check[check.length] = {x: tmp.x-adjustX, y: tmp.y-adjustY};*/
 				//group.addCheck(tmp.x-adjustX, tmp.y-adjustY);//落地後可以判斷group
 			}
 			else if (curretObj.source == 1) {//未來方塊 動畫
-				var tmpY = Math.floor(tmp.y / 3);
-				var tmpX = (tmp.y % 3 == 0) ? [1, 2] : [0, 3];
+				let tmpY = Math.floor(tmp.y / 3);
+				let tmpX = (tmp.y % 3 == 0) ? [1, 2] : [0, 3];
 				tmpX = (tmp.x == 1) ? tmpX[0] : tmpX[1];
 				if (tmp.y % 3 == 0) tmpY--;
 				//console.log(tmpX+' '+tmpY);
@@ -188,13 +188,14 @@ objGrid.prototype.draw = function () {
 
 			}
 			this.falingBlock[i] = false;
-			this.falingBlock.splice(i, 1);
-			l--;
-			i--;
+			// this.falingBlock.splice(i, 1);
+			// l--;
+			// i--;
 		}
 	}
+	this.falingBlock = this.falingBlock.filter(v => v)
 	l = check.length;
-	for (var i = 0; i < l; i++) {
+	for (let i = 0; i < l; i++) {
 		group.addCheck(check[i].x, check[i].y);
 	}
 	//cover
@@ -208,7 +209,7 @@ objGrid.prototype.draw = function () {
 
 objGrid.prototype.identifyGroup = function (x, y) {//
 	//console.log('    '+grid.g[y][x+1].group +' '+ grid.g[y+1][x+1].group +' '+ grid.g[y+1][x].group +' '+ grid.g[y][x].group);
-	var resultList = [];
+	let resultList = [];
 	if (this.g[y][x].group !== false) {
 		if (resultList.indexOf(this.g[y][x].group) == -1) resultList[resultList.length] = this.g[y][x].group;
 	}
@@ -246,12 +247,12 @@ objGrid.prototype.fillGroup = function (x, y, id) {
 }
 
 objGrid.prototype.adjust = function () {
-	for (var i = 0; i < column; i++) {//從每個column中
-		var tmp1 = row - 1;
+	for (let i = 0; i < column; i++) {//從每個column中
+		let tmp1 = row - 1;
 		//console.log(i);
 		while ((this.g[tmp1][i] !== false) && tmp1 >= 0) tmp1--;//找底層連續方塊的頂端
 		if (tmp1 > 2) {//可能有需要下墜的方塊
-			var tmp2 = tmp1;
+			let tmp2 = tmp1;
 			while ((this.g[tmp2][i] === false) && tmp2 >= 2) {//找到第一個需要下墜的方塊
 				//console.log('  '+tmp2);
 				tmp2--;
@@ -262,7 +263,7 @@ objGrid.prototype.adjust = function () {
 				while (tmp2 > 1) {
 					if (this.g[tmp2][i]) {//需要下墜的方塊之間若是有空格就跳過
 						if (this.g[tmp2][i].group !== false) group.unGroup(this.g[tmp2][i].group);
-						var fallSpeed = (tmp1 - tmp2) / FPS * 10;
+						let fallSpeed = (tmp1 - tmp2) / FPS * 10;
 						this.falingBlock[this.falingBlock.length] = {
 							destination: { x: (i + adjustX), y: (tmp1 + adjustY) },
 							current: { x: (i + adjustX), y: (tmp2 + fallSpeed + adjustY) },

@@ -4,7 +4,7 @@ var controlEffect = function () {
 
 controlEffect.prototype.square = function (x, y, frame) {
 	//console.log('square');
-	var process = frame / FPS;
+	let process = frame / FPS;
 
 	ctx.strokeStyle = 'rgba(255, 255, 255, ' + (0.5 - (process / 2)) + ')';//'rgba(255, 255, 0, 0.9)';
 	ctx.lineWidth = shade + 1;
@@ -20,7 +20,7 @@ controlEffect.prototype.square = function (x, y, frame) {
 }
 
 controlEffect.prototype.world = function (str, x, y, frame, shrink) {
-	var process = frame / FPS / 2;
+	let process = frame / FPS / 2;
 	ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
 	ctx.font = Math.floor(unit * 2) + "px Microsoft JhengHei";
 	ctx.fillText(str, x, y);
@@ -31,11 +31,11 @@ controlEffect.prototype.world = function (str, x, y, frame, shrink) {
 }
 
 controlEffect.prototype.shatterBlock = function (x, y, frame) {
-	var process = frame / (FPS / 5);
-	var size = unit;
-	var shortW = size / 2 * process;
-	var longW = size - shortW;
-	var color = 255 - Math.floor(255 * process);
+	let process = frame / (FPS / 5);
+	let size = unit;
+	let shortW = size / 2 * process;
+	let longW = size - shortW;
+	let color = 255 - Math.floor(255 * process);
 	ctx.fillStyle = 'rgba(' + color + ', ' + color + ', ' + color + ', 0.8)';
 	ctx.beginPath();
 	ctx.rect(x * unit + 1, y * unit + 1, shortW - 1, longW - 1);
@@ -47,7 +47,7 @@ controlEffect.prototype.shatterBlock = function (x, y, frame) {
 }
 
 controlEffect.prototype.redScreen = function (frame) {
-	var process = frame / (FPS / 5);
+	let process = frame / (FPS / 5);
 
 	ctx.fillStyle = 'rgba(255, 0, 0, ' + (process * 0.8) + ')';
 	ctx.beginPath();
@@ -57,8 +57,8 @@ controlEffect.prototype.redScreen = function (frame) {
 }
 
 controlEffect.prototype.draw = function () {
-	var l = this.effectList.length;
-	for (var i = 0; i < l; i++) {
+	let l = this.effectList.length;
+	for (let i = 0; i < l; i++) {
 		switch (this.effectList[i].type) {
 			case 0:
 				this.square(this.effectList[i].x, this.effectList[i].y, this.effectList[i].frame);
@@ -77,12 +77,8 @@ controlEffect.prototype.draw = function () {
 				break;
 		}
 		if (!pause) this.effectList[i].frame--;
-		if (this.effectList[i].frame == 0) {
-			this.effectList.splice(i, 1);
-			l--;
-			i--;
-		}
 	}
+	this.effectList = this.effectList.filter(v => v.frame > 0)
 }
 
 controlEffect.prototype.countDown = function (frame) {
