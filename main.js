@@ -127,18 +127,19 @@ function gameResult() {
 }
 
 function resizeCanvas() {
-	let w_width = $(window).width(), w_height = $(window).height();
+	let w_width = window.innerWidth, w_height = window.innerHeight;
 	unit = Math.min(~~(w_width / 24), ~~(w_height / 16));
 	edgeX = unit * column;
 	edgeY = unit * (row - 2);
-	$('#myCanvas').attr("width", unit * 24).attr("height", unit * 16);
+	canvas.width = unit * 24
+	canvas.height = unit * 16
 	blockPerSec = unit / FPS;
 	animationFall = 200 * blockPerSec;
 }
 
 resizeCanvas();
 
-$(window).resize(function () {
+window.addEventListener('resize', () => {
 	resizeCanvas();
 	if (pause) draw();
 });
