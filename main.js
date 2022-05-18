@@ -128,7 +128,7 @@ function gameResult() {
 
 function resizeCanvas() {
 	let w_width = $(window).width(), w_height = $(window).height();
-	unit = Math.min(Math.floor(w_width / 24), Math.floor(w_height / 16));
+	unit = Math.min(~~(w_width / 24), ~~(w_height / 16));
 	edgeX = unit * column;
 	edgeY = unit * (row - 2);
 	$('#myCanvas').attr("width", unit * 24).attr("height", unit * 16);

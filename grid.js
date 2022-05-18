@@ -17,12 +17,12 @@ var objGrid = function () {
 	this.preList = [];
 	//let testList = [12, 0, 2, 6];
 	for (let i = 0; i < 4; i++) {
-		let tmp = Math.floor(Math.random() * 16);
+		let tmp = ~~(Math.random() * 16);
 		//let tmp = testList[i];
 		this.preList[i] = { tag: tmp, c: [] }
 		for (let j = 0; j < 4; j++) {
 			this.preList[i].c[j] = ((tmp % 2) == 1) ? 'C2' : 'C1';
-			tmp = Math.floor(tmp / 2);
+			tmp = ~~(tmp / 2);
 		}
 	}
 	this.preListDisplay = [];
@@ -37,11 +37,11 @@ var objGrid = function () {
 objGrid.prototype.nextBlock = function () {
 	let result = this.preList[0];
 	this.preList.shift();
-	let tmp = Math.floor(Math.random() * 16);
+	let tmp = ~~(Math.random() * 16);
 	this.preList[3] = { tag: tmp, c: [] };
 	for (let i = 0; i < 4; i++) {
 		this.preList[3].c[i] = ((tmp % 2) == 1) ? 'C2' : 'C1';
-		tmp = Math.floor(tmp / 2);
+		tmp = ~~(tmp / 2);
 	}
 
 	let fallSpeed = (3 / FPS * 10) * -1;
@@ -116,7 +116,7 @@ objGrid.prototype.drawGroup = function () {
 			if (this.g[r][c] !== false) {
 				if (this.g[r][c].group !== false) {
 					ctx.fillStyle = '#000000';
-					ctx.font = Math.floor(unit * 3 / 4) + "px Microsoft JhengHei";
+					ctx.font = ~~(unit * 3 / 4) + "px Microsoft JhengHei";
 					ctx.fillText(this.g[r][c].group, (c + adjustX) * unit, (r + adjustY + 1) * unit);
 				}
 			}
@@ -179,7 +179,7 @@ objGrid.prototype.draw = function () {
 				//group.addCheck(tmp.x-adjustX, tmp.y-adjustY);//落地後可以判斷group
 			}
 			else if (curretObj.source == 1) {//未來方塊 動畫
-				let tmpY = Math.floor(tmp.y / 3);
+				let tmpY = ~~(tmp.y / 3);
 				let tmpX = (tmp.y % 3 == 0) ? [1, 2] : [0, 3];
 				tmpX = (tmp.x == 1) ? tmpX[0] : tmpX[1];
 				if (tmp.y % 3 == 0) tmpY--;

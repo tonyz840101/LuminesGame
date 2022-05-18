@@ -26,7 +26,7 @@ line.prototype.draw = function () {
 	ctx.stroke();
 	ctx.closePath();
 
-	ctx.font = Math.floor(unit * 3 / 4) + "px Microsoft JhengHei";
+	ctx.font = ~~(unit * 3 / 4) + "px Microsoft JhengHei";
 	ctx.fillStyle = 'rgb(255, 255, 255)';
 	ctx.fillText(this.Score, this.X + (adjustX - 1.1) * unit, (adjustY + 1.9) * unit);
 	//ctx.fillText(this.X/unit, this.X + (adjustX-1.1)*unit, (adjustY+1.9)*unit);
@@ -74,8 +74,8 @@ line.prototype.draw = function () {
 	if (this.Blink == FPS * 2) this.Blink = 0
 }
 line.prototype.scanning = function () {
-	if (Math.floor(Math.floor(this.X) / unit) != this.LastScanned) {
-		this.LastScanned = Math.floor(Math.floor(this.X) / unit);
+	if (~~(~~(this.X) / unit) != this.LastScanned) {
+		this.LastScanned = ~~(~~(this.X) / unit);
 		group.scanned(this.LastScanned);
 		//console.log(this.LastScanned);
 	}

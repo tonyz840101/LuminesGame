@@ -30,7 +30,7 @@ objGroupControl.prototype.scanned = function (id) {
 	//console.log(l);
 	let l2 = scanner.scanningId.length, l3 = scanner.preDelete.length;
 	for (let i = 0; i < l; i++) {
-		let index = { n: Math.floor(scanner.X / unit), r: scanner.X / unit };
+		let index = { n: ~~(scanner.X / unit), r: scanner.X / unit };
 		//console.log(this.groupList[i].id+'  '+this.groupList[i].scanned+' '+(index.r));
 		if (this.groupList[i].scanned === false && this.groupList[i].start == index.n && index.r - this.groupList[i].start < 1.5) {
 
@@ -44,8 +44,8 @@ objGroupControl.prototype.scanned = function (id) {
 	l2 = scanner.scanningId.length;
 	l3 = scanner.preDelete.length;
 	for (let i = 0; i < l; i++) {//scanningId若不是空的就不adjust();
-		let index = { n: Math.floor(scanner.X / unit), r: scanner.X / unit };
-		if (this.groupList[i].scanned === true && this.groupList[i].end < index.n) {
+		let index = { n: ~~(scanner.X / unit), r: scanner.X / unit };
+		if (this.groupList[i] && this.groupList[i].scanned === true && this.groupList[i].end < index.n) {
 			//console.log('do '+this.groupList[i].id);
 			//console.log('delete '+this.groupList[i].id+'??');
 			let ind = scanner.scanningId.indexOf(this.groupList[i].id);

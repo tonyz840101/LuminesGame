@@ -22,11 +22,11 @@ controlEffect.prototype.square = function (x, y, frame) {
 controlEffect.prototype.world = function (str, x, y, frame, shrink) {
 	let process = frame / FPS / 2;
 	ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-	ctx.font = Math.floor(unit * 2) + "px Microsoft JhengHei";
+	ctx.font = ~~(unit * 2) + "px Microsoft JhengHei";
 	ctx.fillText(str, x, y);
 	if (!shrink) return;
 	ctx.fillStyle = 'rgba(255, 255, 255, ' + (0.5 - process / 2) + ')';
-	ctx.font = Math.floor(unit * (2 + 5 * process)) + "px Microsoft JhengHei";
+	ctx.font = ~~(unit * (2 + 5 * process)) + "px Microsoft JhengHei";
 	ctx.fillText(str, x, y);
 }
 
@@ -35,7 +35,7 @@ controlEffect.prototype.shatterBlock = function (x, y, frame) {
 	let size = unit;
 	let shortW = size / 2 * process;
 	let longW = size - shortW;
-	let color = 255 - Math.floor(255 * process);
+	let color = 255 - ~~(255 * process);
 	ctx.fillStyle = 'rgba(' + color + ', ' + color + ', ' + color + ', 0.8)';
 	ctx.beginPath();
 	ctx.rect(x * unit + 1, y * unit + 1, shortW - 1, longW - 1);
