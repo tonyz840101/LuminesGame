@@ -9,31 +9,42 @@
 			padding: 0;
 			margin: 0;
 			background-color: black;
+			text-align: center;
 		}
 
 		canvas {
-			background: black;
 			display: block;
 			margin: 0 auto;
 			top: 0;
 			left: 0;
+			position: absolute;
+		}
+
+		#lowFreq {
+			background: black;
+		}
+
+		#highFreq {
+			background: transparent;
 		}
 	</style>
 	<link rel="shortcut icon" href="favicon.ico">
-	<!-- <script src='jquery.min.js'></script> -->
 </head>
 
 <body>
 
-	<canvas id="myCanvas" width="320" height="240"></canvas>
+	<canvas id="lowFreq" width="320" height="240"></canvas>
+	<canvas id="highFreq" width="320" height="240"></canvas>
 
 
-	<script src="grid.js"></script>
+	<!-- <script src="grid.js"></script>
 	<script src="line.js"></script>
 	<script src="block.js"></script>
 	<script src="group.js"></script>
-	<script src="effect.js"></script>
-	<script src="main.js"></script>
+	<script src="effect.js"></script> -->
+	<script src="./V2/color.js"></script>
+	<script src="./V2/game.js"></script>
+	<script src="./V2/main.js"></script>
 </body>
 
 </html>
