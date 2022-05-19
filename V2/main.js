@@ -73,10 +73,6 @@ function keyUpHandler(e) {
 }
 
 
-const adjustX = 4
-const adjustY = 2
-const column = 16
-const row = 12
 const gameState = {
     starting: 0,
     counting: 1,
@@ -94,54 +90,18 @@ const colorProvider = new ObjColor({
     C2Shade: 'rgba(0, 0, 0, 0.25)',
 })
 
-var lCanvas = document.getElementById("lowFreq")
-var lCtx = lCanvas.getContext("2d")
+const renderer = new Renderer(
+    document.getElementById("lowFreq"),
+    document.getElementById("highFreq"),
+    {
+        adjustX: 4,
+        adjustY: 2,
+        column: 16,
+        row: 10
+    },
+    colorProvider
+)
 
-var hCanvas = document.getElementById("highFreq")
-var hCtx = hCanvas.getContext("2d")
-
-var unit = 20
-var edgeX = unit * column
-var edgeY = unit * (row - 2)
-
-function resizeCanvas() {
-    console.log("resizeCanvas")
-    unit = Math.min(~~(window.innerWidth / 24), ~~(window.innerHeight / 16))
-    lCanvas.width = unit * 24
-    lCanvas.height = unit * 16
-    hCanvas.width = unit * 24
-    hCanvas.height = unit * 16
-    //update params
-    edgeX = unit * column;
-    edgeY = unit * (row - 2)
-}
-
-resizeCanvas();
-
-window.addEventListener('resize', () => {
-    resizeCanvas();
-    // if (pause) draw();
-});
-
-//draw board, suppose to be changed in very low frequency
-(function drawGrid() {
-    lCtx.strokeStyle = 'rgba(77, 77, 77, 1)';
-    lCtx.lineWidth = 2;
-    for (let c = 0; c < column + 1; c++) {
-        lCtx.beginPath();
-        lCtx.moveTo((adjustX + c) * unit, (adjustY + 2) * unit); lCtx.lineTo((adjustX + c) * unit, (adjustY + 2) * unit + edgeY);
-        lCtx.stroke();
-        lCtx.closePath();
-    }
-
-    for (let r = 2; r < row + 1; r++) {
-        lCtx.beginPath();
-        lCtx.moveTo(adjustX * unit, (adjustY + r) * unit); lCtx.lineTo(adjustX * unit + edgeX, (adjustY + r) * unit);
-        lCtx.stroke();
-        lCtx.closePath();
-    }
-
-})()
 
 //start game loop
 const tick = 1000 / 25
