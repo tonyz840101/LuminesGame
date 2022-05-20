@@ -4,9 +4,6 @@ console.log('P to pause');
 console.log('K to end game');
 console.log('Z to speed up');
 
-document.addEventListener("keydown", keyDownHandler, false);
-document.addEventListener("keyup", keyUpHandler, false);
-
 const KEYCODE = {
     SPACE: 32,
 
@@ -23,63 +20,11 @@ const KEYCODE = {
     P: 80,//pause
     Z: 90,
 }
+const game = new Game({
 
-function keyDownHandler(e) {
-    console.log('keyDownHandler', e.keyCode)
-    // if (e.keyCode == 75) {
-    //     if (state != gameState.gaming) return;
-    //     draw();
-    //     gameResult();
-    // }
-    // if (pause) return;
-    // if (e.keyCode == 37 || e.keyCode == 65) {
-    //     if (cube) cube.moveLeft();
-    // }
-    // if (e.keyCode == 38 || e.keyCode == 87) {//up
-    //     if (cube) cube.rotate();
-    // }
-    // if (e.keyCode == 39 || e.keyCode == 68) {
-    //     if (cube) cube.moveRight();
-    // }
-    // if (e.keyCode == 40 || e.keyCode == 83) {
-    //     downPressed = true;
-    // }
-    // if (e.keyCode == 90) {
-    //     main();
-    // }
-}
-
-function keyUpHandler(e) {
-    console.log('keyUpHandler', e.keyCode)
-    // if (e.keyCode == 40 || e.keyCode == 83) {
-    //     downPressed = false;
-    //     down = true;
-    // }
-    // if (e.keyCode == 80) {
-    //     pause = !pause;
-    // }
-    // if (e.keyCode == 32) {
-    //     if (state == gameState.starting) {
-    //         state = gameState.counting;
-    //         effect = new controlEffect();
-    //         waitCounter = 4 * FPS;
-    //         grid = new objGrid();
-    //     }
-    //     else if (state == gameState.result) {
-    //         state = gameState.starting;
-    //         gameClear();
-    //     }
-    // }
-}
-
-
-const gameState = {
-    starting: 0,
-    counting: 1,
-    gaming: 2,
-    result: 3
-}
-Object.freeze(gameState)
+})
+document.addEventListener("keydown", (e) => game.handleKeyDown(e), false);
+document.addEventListener("keyup", (e) => game.handleKeyUp(e), false);
 
 const colorProvider = new ObjColor({
     C1: '#cccccc',
