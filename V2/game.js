@@ -72,7 +72,7 @@ const Game =
         }
 
         console.log(this.tickPerSecode)
-        this.loop = setInterval(() => this.gameLoop(), this.tickPerSecode)
+        this.loop = setInterval(() => this.gameLoop(), 1000 / this.tickPerSecode)
 
 
         this.gameTime = () => {
