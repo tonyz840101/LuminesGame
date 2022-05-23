@@ -18,10 +18,7 @@ const Game =
         this.scanTick = setting.scanTick || this.tickPerSecond / 4 //default 4 blocks/sec
         this.fallTick = setting.fallTick || this.tickPerSecond * 3 / 2 //1.5 sec
 
-        this.innerColor = {
-            C1: 1,
-            C2: 2
-        }
+        this.innerColor = INNER_COLOR
 
         /// variables
         this.pausing = false
@@ -29,9 +26,14 @@ const Game =
         this.state = gameState.menu
         this.ticker = 0
         this.preList = []
-        this.currentMovingBlock = new FallingBlock(this.fallTick, this.column)
+        this.preListDisplay = []
+        this.currentMovingBlock = new FallingBlock(this.fallTick, this.row, this.column)
 
         this.board = {
+            C1: [],
+            C2: []
+        }
+        this.hidden = {
             C1: [],
             C2: []
         }
@@ -39,6 +41,8 @@ const Game =
         for (let c = 0; c < this.column; c++) {
             this.board.C1[c] = 0
             this.board.C2[c] = 0
+            this.hidden.C1[c] = 0
+            this.hidden.C2[c] = 0
         }
 
 
@@ -121,9 +125,11 @@ const Game =
                 this.currentMovingBlock.setPattern(decodeBlockNumber(generateBlockNumber()))
 
                 for (let i = 0; i < 4; i++) {
-                    this.preList[i] = generateBlockNumber()
+                    const num = generateBlockNumber()
+                    this.preList[i] = num
+                    this.preListDisplay[i] = decodeBlockNumber(num)
                 }
-
+                console.log('start!')
                 return gameState.started
             }
         }
@@ -131,8 +137,7 @@ const Game =
             if (this.ticker > 0) {
                 if (!this.pausing) {
                     this.currentMovingBlock.fall()
-                    console.log(this.currentMovingBlock.x, this.currentMovingBlock.falled)
-                    this.checkCurrentMovingBlock()
+                    this.checkAndPlaceCurrentMovingBlock()
 
                     this.ticker--
                 }
@@ -145,11 +150,94 @@ const Game =
             return this.state
         }
 
-        this.checkCurrentMovingBlock = () => {
-            //check if fallingBlock lands
-            return
+        this.getNewBlock = () => {
             this.currentMovingBlock.setPattern(decodeBlockNumber(this.preList.shift()))
-            this.preList.push(generateBlockNumber())
+            const num = generateBlockNumber()
+            this.preList.push(num)
+            this.preListDisplay.shift()
+            this.preListDisplay.push(decodeBlockNumber(num))
+        }
+
+        this.findBottom = (v, start) => {
+            let mask = 1 << start
+            while (start !== 0) {
+                if (v & mask == 0) {
+                    return start
+                }
+                mask >> 1
+                start--
+            }
+            return 0
+        }
+
+        this.checkAndPlaceCurrentMovingBlock = () => {
+            //check if fallingBlock lands
+            //if reached bottom
+            const leftIdx = this.currentMovingBlock.x
+            const rightIdx = leftIdx + 1
+            if (this.currentMovingBlock.falled === this.row) {
+                let right = this.currentMovingBlock.getRight()
+                let left = this.currentMovingBlock.getLeft()
+                this.board.C1[rightIdx] |= right.C1
+                this.board.C2[rightIdx] |= right.C2
+                this.board.C1[leftIdx] |= left.C1
+                this.board.C2[leftIdx] |= left.C2
+                this.getNewBlock()
+                return
+            }
+
+            const offset = this.row - this.currentMovingBlock.falled + 1
+            const mask = 1 << (this.row - this.currentMovingBlock.falled)
+            let leftPlaced = ((this.board.C1[leftIdx] | this.board.C2[leftIdx]) & mask) === mask ? 2 : 0
+            let rightPlaced = ((this.board.C1[rightIdx] | this.board.C2[rightIdx]) & mask) === mask ? 1 : 0
+
+            const condition = leftPlaced | rightPlaced
+            if (condition !== 0) {
+                let right = this.currentMovingBlock.getRight()
+                let left = this.currentMovingBlock.getLeft()
+                let bottom
+                switch (condition) {
+                    case 1:
+                        if (offset == this.row) {
+                            this.state = gameState.result
+                            return
+                        }
+                        this.board.C1[rightIdx] |= right.C1 << offset
+                        this.board.C2[rightIdx] |= right.C2 << offset
+                        //find left
+                        bottom = this.findBottom(this.board.C1[leftIdx] | this.board.C2[leftIdx], this.row - this.currentMovingBlock.falled)
+                        this.board.C1[leftIdx] |= left.C1 << bottom
+                        this.board.C2[leftIdx] |= left.C2 << bottom
+                        break
+                    case 2:
+                        if (offset == this.row) {
+                            this.state = gameState.result
+                            return
+                        }
+                        this.board.C1[leftIdx] |= left.C1 << offset
+                        this.board.C2[leftIdx] |= left.C2 << offset
+                        //find right
+                        bottom = this.findBottom(this.board.C1[rightIdx] | this.board.C2[rightIdx], this.row - this.currentMovingBlock.falled)
+                        this.board.C1[rightIdx] |= right.C1 << bottom
+                        this.board.C2[rightIdx] |= right.C2 << bottom
+                        break
+                    case 3:
+                        if (offset == this.row) {
+                            this.state = gameState.result
+                            return
+                        }
+                        //place
+                        this.board.C1[rightIdx] |= right.C1 << offset
+                        this.board.C2[rightIdx] |= right.C2 << offset
+                        this.board.C1[leftIdx] |= left.C1 << offset
+                        this.board.C2[leftIdx] |= left.C2 << offset
+                        break
+                    default:
+                        console.error('unexpected place')
+                }
+                this.getNewBlock()
+            }
+            return
         }
 
         this.handleKeyUp = (e) => {
@@ -187,6 +275,9 @@ const Game =
                     }
                     console.log(this.gameTime())
                     return
+                case gameState.started:
+                    this.currentMovingBlock.rotate()
+                    return
             }
         }
         this.inputDown = (up) => {
@@ -202,7 +293,7 @@ const Game =
                     return
                 case gameState.started:
                     this.currentMovingBlock.moveDown()
-                    this.checkCurrentMovingBlock()
+                    this.checkAndPlaceCurrentMovingBlock()
                     return
             }
         }
@@ -231,18 +322,28 @@ const Game =
         this.inputPause = (up) => {
             if (!up) return
             console.log('pause', up)
+            switch (this.state) {
+                case gameState.started:
+                    this.pausing = !this.pausing
+                    return
+            }
         }
 
 
 
     }
 
-const FallingBlock = function (ticker, column) {
+const FallingBlock = function (ticker, row, column) {
     this.pattern = []
     this.x = 7
     this.falled = 0
     this.fallTicker = ticker
     this.currentTicker = ticker
+
+    this.y = () => {
+        console.log(row + 2 - this.falled)
+        return row + 2 - this.falled
+    }
 
     this.moveH = (deltaX) => {
         this.currentTicker = ticker
@@ -253,7 +354,6 @@ const FallingBlock = function (ticker, column) {
     }
 
     this.moveDown = () => {
-        console.log(this)
         this.currentTicker = ticker
         this.falled++
     }
@@ -268,14 +368,71 @@ const FallingBlock = function (ticker, column) {
         }
     }
 
+    this.rotate = () => {
+        this.pattern.push(this.pattern.shift())
+        console.log(this.pattern)
+    }
+
     this.setPattern = (p) => {
         this.pattern = p
         this.currentTicker = ticker
         this.x = 7
         this.falled = 0
     }
+
+    this.getPosition = (pIdx) => {
+        return {
+            x: this.x + offset[pIdx].x, y: this.falled + offset[pIdx].y
+        }
+    }
+
+    this.getLeft = () => {
+        let C1 = 0
+        let C2 = 0
+        if (this.pattern[0] === INNER_COLOR.C1) {
+            C1 += 2
+        } else {
+            C2 += 2
+        }
+        if (this.pattern[1] === INNER_COLOR.C1) {
+            C1 += 1
+        } else {
+            C2 += 1
+        }
+        return ({
+            C1, C2
+        })
+    }
+    this.getRight = () => {
+        let C1 = 0
+        let C2 = 0
+        if (this.pattern[3] === INNER_COLOR.C1) {
+            C1 += 2
+        } else {
+            C2 += 2
+        }
+        if (this.pattern[2] === INNER_COLOR.C1) {
+            C1 += 1
+        } else {
+            C2 += 1
+        }
+        return ({
+            C1, C2
+        })
+    }
 }
 
+const offset = [
+    { x: 0, y: 0 },
+    { x: 0, y: 1 },
+    { x: 1, y: 1 },
+    { x: 1, y: 0 },
+]
+
+const INNER_COLOR = {
+    C1: 1,
+    C2: 2
+}
 
 const gameState = {
     menu: 0,

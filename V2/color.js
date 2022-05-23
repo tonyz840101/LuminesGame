@@ -25,11 +25,11 @@ class ObjColor {
             case this.enum.C1:
             case this.enum.C1T:
             case this.enum.C1Shade:
-                return this.enum.C1T
+                return this.C1T
             case this.enum.C2:
             case this.enum.C2T:
             case this.enum.C2Shade:
-                return this.enum.C2T
+                return this.C2T
         }
     }
 
@@ -38,11 +38,11 @@ class ObjColor {
             case this.enum.C1:
             case this.enum.C1T:
             case this.enum.C1Shade:
-                return this.enum.C1Shade
+                return this.C1Shade
             case this.enum.C2:
             case this.enum.C2T:
             case this.enum.C2Shade:
-                return this.enum.C2Shade
+                return this.C2Shade
         }
     }
 
@@ -51,11 +51,11 @@ class ObjColor {
             case this.enum.C1:
             case this.enum.C1T:
             case this.enum.C1Shade:
-                return this.enum.C1
+                return this.C1
             case this.enum.C2:
             case this.enum.C2T:
             case this.enum.C2Shade:
-                return this.enum.C2
+                return this.C2
         }
     }
 }

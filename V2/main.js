@@ -46,7 +46,7 @@ const renderer = new Renderer(
     },
     colorProvider
 )
-
+renderer.render(game)
 
 //start game loop
 const tick = 1000 / 25
