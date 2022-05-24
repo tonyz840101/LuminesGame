@@ -181,6 +181,7 @@ const Game =
                 if (!this.pausing) {
                     this.currentMovingBlock.fall()
                     this.checkAndPlaceCurrentMovingBlock()
+                    this.moveScanner()
 
                     this.ticker--
                 }
@@ -202,13 +203,10 @@ const Game =
         }
 
         this.findBottom = (v) => {
-            // console.log('findBottom', v)
             let mask = 1
             let result = 0
             while (result < this.row) {
-                // console.log('finding ... ', v, mask, (v & mask))
                 if (mask > v) {
-                    // console.log('found', result)
                     return result
                 }
                 mask <<= 1
@@ -216,6 +214,19 @@ const Game =
             }
             console.error('findBottom exceed row')
             return
+        }
+
+        this.moveScanner = () => {
+            if (this.scannerCounter > 0) {
+                this.scannerCounter--
+            } else {
+                this.scannerCounter = this.scanTick
+                this.scanner++
+                if (this.scanner === this.column) {
+                    this.scanner = 0
+                }
+                // console.log('scanner at', this.scanner)
+            }
         }
 
         this.checkAndPlaceCurrentMovingBlock = () => {
@@ -251,6 +262,7 @@ const Game =
             switch (condition) {
                 case 1:
                     if (offset == this.row) {
+                        console.log("end??")
                         this.state = gameState.result
                         return true
                     }
@@ -266,6 +278,7 @@ const Game =
                     break
                 case 2:
                     if (offset == this.row) {
+                        console.log("end??")
                         this.state = gameState.result
                         return true
                     }
@@ -280,6 +293,7 @@ const Game =
                     break
                 case 3:
                     if (offset == this.row) {
+                        console.log("end??")
                         this.state = gameState.result
                         return true
                     }
