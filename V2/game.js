@@ -29,6 +29,7 @@ const Game =
         this.preListDisplay = []
         this.currentMovingBlock = new FallingBlock(this.fallTick, this.row, this.column)
 
+        //0,0 at left bottom corner
         this.board = {
             C1: [],
             C2: []
@@ -38,13 +39,40 @@ const Game =
             C2: []
         }
 
-        for (let c = 0; c < this.column; c++) {
-            this.board.C1[c] = 0
-            this.board.C2[c] = 0
-            this.hidden.C1[c] = 0
-            this.hidden.C2[c] = 0
+        this.initBoard = () => {
+            for (let c = 0; c < this.column; c++) {
+                this.board.C1[c] = 0
+                this.board.C2[c] = 0
+                this.hidden.C1[c] = 0
+                this.hidden.C2[c] = 0
+            }
         }
 
+        this.subscriber = []
+        this.subscribe = (callback) => {
+            this.subscriber.push(callback)
+        }
+        this.emit = (e) => {
+            this.subscriber.forEach(v => v(e))
+        }
+        this.eventKind = {
+            //for render
+            grouped: 1,
+            cleared: 2,
+            //for record
+            input: 11,
+            blockGenerated: 21,
+            blockPlaced: 22,//might not be usful
+        }
+
+        this.scanner = 0
+        this.scannerCounter = this.scanTick
+        this.grouped = {
+            C1: [],
+            C2: []
+        }
+
+        this.dropLock = false
 
         function generateBlockNumber() {
             return ~~(Math.random() * 16)
@@ -121,18 +149,33 @@ const Game =
                 this.ticker--
                 return this.state
             } else {
-                this.ticker = this.gameTime() * this.tickPerSecond
-                this.currentMovingBlock.setPattern(decodeBlockNumber(generateBlockNumber()))
-
-                for (let i = 0; i < 4; i++) {
-                    const num = generateBlockNumber()
-                    this.preList[i] = num
-                    this.preListDisplay[i] = decodeBlockNumber(num)
-                }
-                console.log('start!')
+                this.startGame()
                 return gameState.started
             }
         }
+
+        this.startGame = () => {
+            this.ticker = this.gameTime() * this.tickPerSecond
+            this.currentMovingBlock.setPattern(decodeBlockNumber(generateBlockNumber()))
+
+            for (let i = 0; i < 4; i++) {
+                const num = generateBlockNumber()
+                this.preList[i] = num
+                this.preListDisplay[i] = decodeBlockNumber(num)
+            }
+            this.initBoard()
+
+            this.scanner = 0
+            this.scannerCounter = this.scanTick
+            this.grouped = {
+                C1: [],
+                C2: []
+            }
+
+            this.dropLock = false
+            console.log('start!')
+        }
+
         this.startedState = () => {
             if (this.ticker > 0) {
                 if (!this.pausing) {
@@ -158,16 +201,21 @@ const Game =
             this.preListDisplay.push(decodeBlockNumber(num))
         }
 
-        this.findBottom = (v, start) => {
-            let mask = 1 << start
-            while (start !== 0) {
-                if (v & mask == 0) {
-                    return start
+        this.findBottom = (v) => {
+            // console.log('findBottom', v)
+            let mask = 1
+            let result = 0
+            while (result < this.row) {
+                // console.log('finding ... ', v, mask, (v & mask))
+                if (mask > v) {
+                    // console.log('found', result)
+                    return result
                 }
-                mask >> 1
-                start--
+                mask <<= 1
+                result++
             }
-            return 0
+            console.error('findBottom exceed row')
+            return
         }
 
         this.checkAndPlaceCurrentMovingBlock = () => {
@@ -182,8 +230,9 @@ const Game =
                 this.board.C2[rightIdx] |= right.C2
                 this.board.C1[leftIdx] |= left.C1
                 this.board.C2[leftIdx] |= left.C2
+                this.checkGroup4Block(leftIdx, 1)
                 this.getNewBlock()
-                return
+                return true
             }
 
             const offset = this.row - this.currentMovingBlock.falled + 1
@@ -192,52 +241,113 @@ const Game =
             let rightPlaced = ((this.board.C1[rightIdx] | this.board.C2[rightIdx]) & mask) === mask ? 1 : 0
 
             const condition = leftPlaced | rightPlaced
-            if (condition !== 0) {
-                let right = this.currentMovingBlock.getRight()
-                let left = this.currentMovingBlock.getLeft()
-                let bottom
-                switch (condition) {
-                    case 1:
-                        if (offset == this.row) {
-                            this.state = gameState.result
-                            return
-                        }
-                        this.board.C1[rightIdx] |= right.C1 << offset
-                        this.board.C2[rightIdx] |= right.C2 << offset
-                        //find left
-                        bottom = this.findBottom(this.board.C1[leftIdx] | this.board.C2[leftIdx], this.row - this.currentMovingBlock.falled)
-                        this.board.C1[leftIdx] |= left.C1 << bottom
-                        this.board.C2[leftIdx] |= left.C2 << bottom
-                        break
-                    case 2:
-                        if (offset == this.row) {
-                            this.state = gameState.result
-                            return
-                        }
-                        this.board.C1[leftIdx] |= left.C1 << offset
-                        this.board.C2[leftIdx] |= left.C2 << offset
-                        //find right
-                        bottom = this.findBottom(this.board.C1[rightIdx] | this.board.C2[rightIdx], this.row - this.currentMovingBlock.falled)
-                        this.board.C1[rightIdx] |= right.C1 << bottom
-                        this.board.C2[rightIdx] |= right.C2 << bottom
-                        break
-                    case 3:
-                        if (offset == this.row) {
-                            this.state = gameState.result
-                            return
-                        }
-                        //place
-                        this.board.C1[rightIdx] |= right.C1 << offset
-                        this.board.C2[rightIdx] |= right.C2 << offset
-                        this.board.C1[leftIdx] |= left.C1 << offset
-                        this.board.C2[leftIdx] |= left.C2 << offset
-                        break
-                    default:
-                        console.error('unexpected place')
-                }
-                this.getNewBlock()
+            if (condition === 0) {
+                return false
             }
-            return
+
+            let right = this.currentMovingBlock.getRight()
+            let left = this.currentMovingBlock.getLeft()
+            let bottom
+            switch (condition) {
+                case 1:
+                    if (offset == this.row) {
+                        this.state = gameState.result
+                        return true
+                    }
+                    this.board.C1[rightIdx] |= right.C1 << offset
+                    this.board.C2[rightIdx] |= right.C2 << offset
+                    //find left
+                    console.log('falled', this.currentMovingBlock.falled)
+                    bottom = this.findBottom(this.board.C1[leftIdx] | this.board.C2[leftIdx], this.row - this.currentMovingBlock.falled)
+                    this.board.C1[leftIdx] |= left.C1 << bottom
+                    this.board.C2[leftIdx] |= left.C2 << bottom
+                    this.checkGroup2Block(leftIdx, bottom + 1)
+                    this.checkGroup2Block(rightIdx, offset + 1)
+                    break
+                case 2:
+                    if (offset == this.row) {
+                        this.state = gameState.result
+                        return true
+                    }
+                    this.board.C1[leftIdx] |= left.C1 << offset
+                    this.board.C2[leftIdx] |= left.C2 << offset
+                    //find right
+                    bottom = this.findBottom(this.board.C1[rightIdx] | this.board.C2[rightIdx], this.row - this.currentMovingBlock.falled)
+                    this.board.C1[rightIdx] |= right.C1 << bottom
+                    this.board.C2[rightIdx] |= right.C2 << bottom
+                    this.checkGroup2Block(leftIdx, offset + 1)
+                    this.checkGroup2Block(rightIdx, bottom + 1)
+                    break
+                case 3:
+                    if (offset == this.row) {
+                        this.state = gameState.result
+                        return true
+                    }
+                    //place
+                    this.board.C1[rightIdx] |= right.C1 << offset
+                    this.board.C2[rightIdx] |= right.C2 << offset
+                    this.board.C1[leftIdx] |= left.C1 << offset
+                    this.board.C2[leftIdx] |= left.C2 << offset
+                    this.checkGroup4Block(leftIdx, offset + 1)
+                    break
+                default:
+                    console.error('unexpected place')
+            }
+            this.getNewBlock()
+            return true
+        }
+
+        //check x-1, y ~ x+1, y-1
+        this.checkGroup4Block = (x, y) => {
+            // console.log('checkGroup4Block', x, y)
+            if (x < 0 || x >= this.column) console.error('checkGroup4Block x', x)
+            if (y < 0 || y >= this.row) console.error('checkGroup4Block y', y)
+            let xList = []
+            let yList = []
+            if (x > 0) xList.push(x - 1)
+            if (x < this.column - 1) xList.push(x)
+            if (x < this.column - 2) xList.push(x + 1)
+
+            if (y > 0) yList.push(y)
+            if (y > 1) yList.push(y - 1)
+
+            for (let i = 0; i < xList.length; i++)
+                for (let j = 0; j < yList.length; j++)
+                    this.checkGroupSingle(xList[i], yList[j])
+        }
+        //check x-1, y ~ x, y-1
+        this.checkGroup2Block = (x, y) => {
+            // console.log('checkGroup2Block', x, y)
+            if (x < 0 || x >= this.column) console.error('checkGroup2Block x', x)
+            if (y < 0 || y >= this.row) console.error('checkGroup2Block y', y)
+            let xList = []
+            let yList = []
+            if (x > 0) xList.push(x - 1)
+            if (x < this.column - 1) xList.push(x)
+
+            if (y > 0) yList.push(y)
+            if (y > 1) yList.push(y - 1)
+
+            for (let i = 0; i < xList.length; i++)
+                for (let j = 0; j < yList.length; j++)
+                    this.checkGroupSingle(xList[i], yList[j])
+        }
+        this.checkGroupSingle = (x, y) => {
+            // console.log('check', x, y)
+            const mask = 3 << (y - 1)
+            if ((this.board.C1[x] & this.board.C1[x + 1] & mask) == mask) {
+                console.log('C1 group', x, y)
+                this.emit({ kind: this.eventKind.grouped, x, y })
+            }
+            else if ((this.board.C2[x] & this.board.C2[x + 1] & mask) == mask) {
+                console.log('C2 group', x, y)
+                this.emit({ kind: this.eventKind.grouped, x, y })
+            }
+
+        }
+        //on cleared
+        this.regroup = () => {
+
         }
 
         this.handleKeyUp = (e) => {
@@ -254,8 +364,9 @@ const Game =
             }
         }
 
+        /// input handler
         this.inputStart = (up) => {
-            console.log('start', up)
+            // console.log('start', up)
             if (!up) return
             switch (this.state) {
                 case gameState.menu:
@@ -265,7 +376,7 @@ const Game =
             }
         }
         this.inputUp = (up) => {
-            console.log('up', up)
+            // console.log('up', up)
             if (up) return
             switch (this.state) {
                 case gameState.menu:
@@ -276,15 +387,16 @@ const Game =
                     console.log(this.gameTime())
                     return
                 case gameState.started:
+                    if (!develop && this.pausing) return
                     this.currentMovingBlock.rotate()
                     return
             }
         }
         this.inputDown = (up) => {
-            console.log('down', up)
-            if (up) return
+            // console.log('down', up)
             switch (this.state) {
                 case gameState.menu:
+                    if (up) return
                     this.currentGameTime++
                     if (this.currentGameTime >= this.timeOption.length) {
                         this.currentGameTime = 0
@@ -292,36 +404,45 @@ const Game =
                     console.log(this.gameTime())
                     return
                 case gameState.started:
-                    this.currentMovingBlock.moveDown()
-                    this.checkAndPlaceCurrentMovingBlock()
-                    return
+                    if (up) {
+                        if (this.dropLock) this.dropLock = false
+                        return
+                    } else {
+                        if (this.dropLock) return
+                        if (!develop && this.pausing) return
+                        this.currentMovingBlock.moveDown()
+                        this.dropLock = this.checkAndPlaceCurrentMovingBlock()
+                        return
+                    }
             }
         }
         this.inputLeft = (up) => {
-            console.log('left', up)
+            // console.log('left', up)
             if (up) return
             switch (this.state) {
                 case gameState.started:
+                    if (!develop && this.pausing) return
                     this.currentMovingBlock.moveH(-1)
                     return
             }
 
         }
         this.inputRight = (up) => {
-            console.log('right', up)
+            // console.log('right', up)
             if (up) return
             switch (this.state) {
                 case gameState.started:
+                    if (!develop && this.pausing) return
                     this.currentMovingBlock.moveH(1)
                     return
             }
         }
         this.inputEnd = (up) => {
-            console.log('end', up)
+            // console.log('end', up)
         }
         this.inputPause = (up) => {
             if (!up) return
-            console.log('pause', up)
+            // console.log('pause', up)
             switch (this.state) {
                 case gameState.started:
                     this.pausing = !this.pausing
@@ -339,11 +460,6 @@ const FallingBlock = function (ticker, row, column) {
     this.falled = 0
     this.fallTicker = ticker
     this.currentTicker = ticker
-
-    this.y = () => {
-        console.log(row + 2 - this.falled)
-        return row + 2 - this.falled
-    }
 
     this.moveH = (deltaX) => {
         this.currentTicker = ticker
@@ -370,7 +486,7 @@ const FallingBlock = function (ticker, row, column) {
 
     this.rotate = () => {
         this.pattern.push(this.pattern.shift())
-        console.log(this.pattern)
+        // console.log(this.pattern)
     }
 
     this.setPattern = (p) => {

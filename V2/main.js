@@ -1,4 +1,6 @@
+const develop = true
 
+console.log('develop? ', develop)
 console.log('Press \'space\' key to start.');
 console.log('P to pause');
 console.log('K to end game');
@@ -48,6 +50,12 @@ const renderer = new Renderer(
 )
 renderer.render(game)
 
+game.subscribe((e) => {
+    // switch(e.kind) {
+
+    // }
+    renderer.insertEffect(e.kind)
+})
 //start game loop
 const tick = 1000 / 25
 

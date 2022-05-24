@@ -159,6 +159,10 @@ class Renderer {
         window.requestAnimationFrame(() => this.render(game))
     }
 
+    insertEffect(effect) {
+        console.log('get effect', effect)
+    }
+
     // start() {
     //     window.requestAnimationFrame()
 
