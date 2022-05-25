@@ -116,6 +116,7 @@ const Game =
         this.gameTime = () => {
             return this.timeOption[this.currentGameTime]
         }
+        console.log(this.gameTime())
 
         this.generateBlockNumber = generateBlockNumber
 
@@ -221,12 +222,17 @@ const Game =
                 this.scannerCounter--
             } else {
                 this.scannerCounter = this.scanTick
+                this.clear(this.scanner)
                 this.scanner++
                 if (this.scanner === this.column) {
                     this.scanner = 0
                 }
                 // console.log('scanner at', this.scanner)
             }
+        }
+
+        this.clear = (x) => {
+
         }
 
         this.checkAndPlaceCurrentMovingBlock = () => {
@@ -351,18 +357,62 @@ const Game =
             const mask = 3 << (y - 1)
             if ((this.board.C1[x] & this.board.C1[x + 1] & mask) == mask) {
                 console.log('C1 group', x, y)
-                this.emit({ kind: this.eventKind.grouped, x, y })
+                this.addGroup(this.grouped.C1, x, y)
             }
             else if ((this.board.C2[x] & this.board.C2[x + 1] & mask) == mask) {
                 console.log('C2 group', x, y)
-                this.emit({ kind: this.eventKind.grouped, x, y })
+                this.addGroup(this.grouped.C2, x, y)
             }
-
         }
-        //on cleared
-        this.regroup = () => {
-
+        this.addGroup = (target, x, y) => {
+            this.emit({ kind: this.eventKind.grouped, x, y })
+            target.push(y + x * this.row)
+            console.log(target)
+            console.log(this.relatedGroup(y + x * this.row))
         }
+        this.relatedGroup = (v) => {
+            let related = {
+                left: [],
+                right: []
+            }
+            let isBottom = false
+            let isTop = false
+            let modResult = v % this.row
+            if (modResult === 1) {
+                isBottom = true
+            } else if (modResult === this.row - 1) {
+                isTop = true
+            }
+            if (v > this.row) {//find left
+                const base = v - this.row
+                if (!isBottom) related.left.push(base - 1)
+                related.left.push(base)
+                if (!isTop) related.left.push(base + 1)
+            }
+            if (v / this.row < this.column - 2) {//find right
+                const base = v + this.row
+                if (!isBottom) related.right.push(base - 1)
+                related.right.push(base)
+                if (!isTop) related.right.push(base + 1)
+            }
+            return related
+        }
+
+        this.checkWholeBoard = () => {
+            for (let c = 0; c < this.column - 1; c++) {
+                for (let r = 1; r < thie.row; r++) {
+                    if ((this.board.C1[x] & this.board.C1[x + 1] & mask) == mask) {
+                        console.log('C1 group', x, y)
+                        this.addGroup(this.grouped.C1, x, y)
+                    }
+                    else if ((this.board.C2[x] & this.board.C2[x + 1] & mask) == mask) {
+                        console.log('C2 group', x, y)
+                        this.addGroup(this.grouped.C2, x, y)
+                    }
+                }
+            }
+        }
+
 
         this.handleKeyUp = (e) => {
             const keyCode = e.keyCode
@@ -551,6 +601,38 @@ const FallingBlock = function (ticker, row, column) {
         })
     }
 }
+
+// const GroupManager = (row, column) => {
+//     this.board = []
+//     for (let c = 0; c < column - 1; c++) {
+//         this.board[c] = []
+//         for (let r = 0; r < row - 1; r++) {
+//             this.board[c][r] = GroupNode(c, r + 1)
+//         }
+//     }
+// }
+
+// const GroupNode = (x, y) => {
+//     this.x = x
+//     this.y = y
+//     this.leftRelated = []
+//     this.rightRelated = []
+//     this.grouped = false
+
+//     this.isLeftEnd = () => {
+//         for (let i = 0; i < this.leftRelated.length; i++) {
+//             if (this.leftRelated[i].grouped) return true
+//         }
+//         return false
+//     }
+
+//     this.isRightEnd = () => {
+//         for (let i = 0; i < this.rightRelated.length; i++) {
+//             if (this.rightRelated[i].grouped) return true
+//         }
+//         return false
+//     }
+// }
 
 const offset = [
     { x: 0, y: 0 },
