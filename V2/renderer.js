@@ -23,7 +23,8 @@ class Renderer {
     }
     startRender(game) {
         this.rTime = Date.now()
-        this.render(game)
+        this.game = game
+        this.render(this.getDeltaTime())
     }
     getDeltaTime() {
         const now = Date.now()
@@ -122,8 +123,8 @@ class Renderer {
         this.hCtx.closePath()
     }
 
-    render(game) {
-        const deltaTime = this.getDeltaTime()
+    render(deltaTime) {
+        const game = this.game
         // console.log('deltaTime', deltaTime)
         let renderC1 = []
         let renderC2 = []
@@ -182,11 +183,12 @@ class Renderer {
                 default:
                     console.log('unknown effect kind', effect.kind)
             }
-            effect.timeLeft -= deltaTime
+            if (!this.game.paused)
+                effect.timeLeft -= deltaTime
         }
         this.effectList = this.effectList.filter(v => v.timeLeft > 0)
 
-        window.requestAnimationFrame(() => this.render(game))
+        window.requestAnimationFrame(() => this.render(this.getDeltaTime()))
     }
 
 

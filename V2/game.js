@@ -22,7 +22,7 @@ const Game =
         this.innerColor = INNER_COLOR
 
         /// variables
-        this.pausing = false
+        this.paused = false
         this.currentGameTime = 0
         this.state = gameState.menu
         this.ticker = 0
@@ -180,7 +180,7 @@ const Game =
 
         this.startedState = () => {
             if (this.ticker > 0) {
-                if (!this.pausing) {
+                if (!this.paused) {
                     this.currentMovingBlock.fall()
                     this.checkAndPlaceCurrentMovingBlock()
                     this.moveScanner()
@@ -452,7 +452,7 @@ const Game =
                     console.log(this.gameTime())
                     return
                 case gameState.started:
-                    if (!develop && this.pausing) return
+                    if (!develop && this.paused) return
                     this.currentMovingBlock.rotate()
                     return
             }
@@ -474,7 +474,7 @@ const Game =
                         return
                     } else {
                         if (this.dropLock) return
-                        if (!develop && this.pausing) return
+                        if (!develop && this.paused) return
                         this.currentMovingBlock.moveDown()
                         this.dropLock = this.checkAndPlaceCurrentMovingBlock()
                         return
@@ -486,7 +486,7 @@ const Game =
             if (up) return
             switch (this.state) {
                 case gameState.started:
-                    if (!develop && this.pausing) return
+                    if (!develop && this.paused) return
                     this.currentMovingBlock.moveH(-1)
                     return
             }
@@ -497,7 +497,7 @@ const Game =
             if (up) return
             switch (this.state) {
                 case gameState.started:
-                    if (!develop && this.pausing) return
+                    if (!develop && this.paused) return
                     this.currentMovingBlock.moveH(1)
                     return
             }
@@ -510,7 +510,7 @@ const Game =
             // console.log('pause', up)
             switch (this.state) {
                 case gameState.started:
-                    this.pausing = !this.pausing
+                    this.paused = !this.paused
                     return
             }
         }
