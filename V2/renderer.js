@@ -13,11 +13,23 @@ class Renderer {
 
         this.colorProvider = colorProvider
 
+        this.effectList = []
+
         this.resizeCanvas()
 
         window.addEventListener('resize', () => {
             this.resizeCanvas()
         })
+    }
+    startRender(game) {
+        this.rTime = Date.now()
+        this.render(game)
+    }
+    getDeltaTime() {
+        const now = Date.now()
+        const deltaTime = now - this.rTime
+        this.rTime = now
+        return deltaTime
     }
 
     resizeCanvas() {
@@ -111,6 +123,8 @@ class Renderer {
     }
 
     render(game) {
+        const deltaTime = this.getDeltaTime()
+        // console.log('deltaTime', deltaTime)
         let renderC1 = []
         let renderC2 = []
         switch (game.state) {
@@ -156,11 +170,63 @@ class Renderer {
                 break
         }
 
+        for (let i = 0; i < this.effectList.length; i++) {
+            const effect = this.effectList[i]
+            switch (effect.kind) {
+                case effectKind.grouped:
+                    this.renderSquare(effect.x, effect.y, effect.timeLeft / effect.time)
+                    break
+                case effectKind.cleared:
+                    this.renderShatteredBlock(effect.x, effect.y, effect.timeLeft / effect.time)
+                    break
+                default:
+                    console.log('unknown effect kind', effect.kind)
+            }
+            effect.timeLeft -= deltaTime
+        }
+        this.effectList = this.effectList.filter(v => v.timeLeft > 0)
+
         window.requestAnimationFrame(() => this.render(game))
     }
 
+
+    //{ kind: effectKind, x,y,time,timeLeft}
     insertEffect(effect) {
         console.log('get effect', effect)
+        this.effectList.push(effect)
+    }
+
+    renderSquare(x, y, process) {
+        const xBase = (x + this.adjustX - process) * this.unit
+        const yBase = (y + this.adjustY - process) * this.unit
+        this.hCtx.strokeStyle = 'rgba(255, 255, 255, ' + (0.5 - (process / 2)) + ')'//'rgba(255, 255, 0, 0.9)'
+        this.hCtx.lineWidth = this.shade + 1
+        this.hCtx.beginPath()
+        this.hCtx.rect(xBase + this.shade / 2, yBase + this.shade / 2, (2 * process + 2) * this.unit - this.shade, (2 * process + 2) * this.unit - this.shade)
+        this.hCtx.stroke()
+        this.hCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)'
+        this.hCtx.lineWidth = 2
+        this.hCtx.beginPath()
+        this.hCtx.rect(xBase, yBase, (2 * process + 2) * this.unit, (2 * process + 2) * this.unit)
+        this.hCtx.stroke()
+        this.hCtx.closePath()
+    }
+
+    renderShatteredBlock(x, y, process) {
+        const size = this.unit
+        const shortW = size / 2 * process
+        const longW = size - shortW
+        const color = this.colorProvider.cleared - ~~(this.colorProvider.cleared * process)
+        const xBase = (x + this.adjustX) * this.unit
+        const yBase = (y + this.adjustY) * this.unit
+        this.hCtx.fillStyle = `rgba(${color}, ${color}, ${color}, 0.8)`
+        this.hCtx.beginPath()
+        this.hCtx.rect(xBase + 1, yBase + 1, shortW - 1, longW - 1)
+        this.hCtx.rect(xBase + shortW, yBase + 1, longW - 1, shortW - 1)
+        this.hCtx.rect(xBase + 1, yBase + size - shortW, longW - 1, shortW - 1)
+        this.hCtx.rect(xBase + size - shortW, yBase + shortW, shortW - 1, longW - 1)
+        this.hCtx.fill()
+        this.hCtx.closePath()
     }
 
     // start() {
@@ -168,4 +234,9 @@ class Renderer {
 
     //     window.getNextA
     // }
+}
+
+const effectKind = {
+    grouped: 1,
+    cleared: 2,
 }

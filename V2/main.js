@@ -48,13 +48,17 @@ const renderer = new Renderer(
     },
     colorProvider
 )
-renderer.render(game)
+renderer.startRender(game)
 
 game.subscribe((e) => {
-    // switch(e.kind) {
-
-    // }
-    renderer.insertEffect(e.kind)
+    switch (e.kind) {
+        case game.eventKind.grouped:
+            const time = 500
+            renderer.insertEffect({ kind: effectKind.grouped, x: e.x, y: game.row - e.y + 1, time, timeLeft: time })
+            break
+        case game.eventKind.cleared:
+            break
+    }
 })
 //start game loop
 const tick = 1000 / 25

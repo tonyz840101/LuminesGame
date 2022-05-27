@@ -1,3 +1,4 @@
+const countDownSec = 0//3
 const Game =
     function (setting) {
         /*
@@ -435,7 +436,7 @@ const Game =
             switch (this.state) {
                 case gameState.menu:
                     this.state = gameState.countDown
-                    this.ticker = 3 * this.tickPerSecond
+                    this.ticker = countDownSec * this.tickPerSecond
                     return
             }
         }

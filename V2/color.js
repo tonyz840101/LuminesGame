@@ -8,6 +8,7 @@ class ObjColor {
         this.C2Shade = colorConfig.C2Shade || 'rgba(0, 0, 0, 0.25)'
         this.text = colorConfig.text || '#000000'
         this.boardLine = colorConfig.boardLine || 'rgba(77, 77, 77, 1)'
+        this.cleared = 255
 
         this.enum = {
             C1: 1,
