@@ -66,6 +66,8 @@ const Game =
             blockPlaced: 22,//might not be usful
         }
 
+        this.score = 0
+        this.scannerScore = 0
         this.scanner = 0
         this.scannerCounter = this.scanTick
         this.grouped = {
@@ -167,6 +169,8 @@ const Game =
             }
             this.initBoard()
 
+            this.score = 0
+            this.scannerScore = 0
             this.scanner = 0
             this.scannerCounter = this.scanTick
             this.grouped = {
@@ -223,17 +227,21 @@ const Game =
                 this.scannerCounter--
             } else {
                 this.scannerCounter = this.scanTick
-                this.clear(this.scanner)
+                if (this.scanner > 0) {
+                    console.log(`do clear ${this.scanner}`)
+                    this.scannerScore +=
+                        this.checkRelatedAndclear(this.grouped.C1, this.board.C1[this.scanner])
+                        + this.checkRelatedAndclear(this.grouped.C2, this.board.C2[this.scanner])
+                    // this.reorgBoard()
+                }
                 this.scanner++
                 if (this.scanner === this.column) {
+                    this.score += this.scannerScore
+                    this.scannerScore = 0
                     this.scanner = 0
                 }
                 // console.log('scanner at', this.scanner)
             }
-        }
-
-        this.clear = (x) => {
-
         }
 
         this.checkAndPlaceCurrentMovingBlock = () => {
@@ -269,7 +277,8 @@ const Game =
             switch (condition) {
                 case 1:
                     if (offset == this.row) {
-                        console.log("end??")
+                        console.log("end?? case 1")
+                        //#TODO special handle the slide effect
                         this.state = gameState.result
                         return true
                     }
@@ -285,7 +294,8 @@ const Game =
                     break
                 case 2:
                     if (offset == this.row) {
-                        console.log("end??")
+                        console.log("end?? case 2")
+                        //#TODO special handle the slide effect
                         this.state = gameState.result
                         return true
                     }
@@ -300,7 +310,7 @@ const Game =
                     break
                 case 3:
                     if (offset == this.row) {
-                        console.log("end??")
+                        console.log("end?? case 3")
                         this.state = gameState.result
                         return true
                     }
@@ -358,45 +368,59 @@ const Game =
             const mask = 3 << (y - 1)
             if ((this.board.C1[x] & this.board.C1[x + 1] & mask) == mask) {
                 console.log('C1 group', x, y)
-                this.addGroup(this.grouped.C1, x, y)
+                this.addGroup(this.grouped.C1, x + 1, y)
             }
             else if ((this.board.C2[x] & this.board.C2[x + 1] & mask) == mask) {
                 console.log('C2 group', x, y)
-                this.addGroup(this.grouped.C2, x, y)
+                this.addGroup(this.grouped.C2, x + 1, y)
             }
         }
         this.addGroup = (target, x, y) => {
             this.emit({ kind: this.eventKind.grouped, x, y })
             target.push(y + x * this.row)
+            target.sort((a, b) => a - b)
+
             console.log(target)
-            console.log(this.relatedGroup(y + x * this.row))
+            // console.log(this.relatedGroup(y + x * this.row))
         }
-        this.relatedGroup = (v) => {
-            let related = {
-                left: [],
-                right: []
-            }
-            let isBottom = false
-            let isTop = false
-            let modResult = v % this.row
-            if (modResult === 1) {
-                isBottom = true
-            } else if (modResult === this.row - 1) {
-                isTop = true
-            }
-            if (v > this.row) {//find left
-                const base = v - this.row
-                if (!isBottom) related.left.push(base - 1)
-                related.left.push(base)
-                if (!isTop) related.left.push(base + 1)
-            }
-            if (v / this.row < this.column - 2) {//find right
-                const base = v + this.row
-                if (!isBottom) related.right.push(base - 1)
-                related.right.push(base)
-                if (!isTop) related.right.push(base + 1)
-            }
-            return related
+        // this.relatedGroup = (v) => {
+        //     let related = {
+        //         left: [],
+        //         right: []
+        //     }
+        //     let isBottom = false
+        //     let isTop = false
+        //     let modResult = v % this.row
+        //     if (modResult === 1) {
+        //         isBottom = true
+        //     } else if (modResult === this.row - 1) {
+        //         isTop = true
+        //     }
+        //     if (v > this.row) {//find left
+        //         const base = v - this.row
+        //         if (!isBottom) related.left.push(base - 1)
+        //         related.left.push(base)
+        //         if (!isTop) related.left.push(base + 1)
+        //     }
+        //     if (v / this.row < this.column - 2) {//find right
+        //         const base = v + this.row
+        //         if (!isBottom) related.right.push(base - 1)
+        //         related.right.push(base)
+        //         if (!isTop) related.right.push(base + 1)
+        //     }
+        //     return related
+        // }
+        this.checkRelatedAndclear = (target, board) => {
+            // const currentColumn = target.filter(v => ~~(v / this.row) == this.scanner).map(v => v % this.row)
+            // for(let i = 0; i < currentColumn.length; i ++){
+            //     let related = 7 << (currentColumn[i]-1)
+            //     if (!related) {
+            //         //try clear all related
+            //     }
+            // }
+
+            // console.log('checkRelatedAndclear', currentColumn)
+            return currentColumn.length
         }
 
         this.checkWholeBoard = () => {
@@ -506,7 +530,7 @@ const Game =
             // console.log('end', up)
         }
         this.inputPause = (up) => {
-            if (!up) return
+            if (develop ? up : !up) return
             // console.log('pause', up)
             switch (this.state) {
                 case gameState.started:
@@ -525,6 +549,10 @@ const FallingBlock = function (ticker, row, column) {
     this.falled = 0
     this.fallTicker = ticker
     this.currentTicker = ticker
+
+    this.fallProcess = () => {
+        return 1 - this.currentTicker / this.fallTicker
+    }
 
     this.moveH = (deltaX) => {
         this.currentTicker = ticker
@@ -602,38 +630,6 @@ const FallingBlock = function (ticker, row, column) {
         })
     }
 }
-
-// const GroupManager = (row, column) => {
-//     this.board = []
-//     for (let c = 0; c < column - 1; c++) {
-//         this.board[c] = []
-//         for (let r = 0; r < row - 1; r++) {
-//             this.board[c][r] = GroupNode(c, r + 1)
-//         }
-//     }
-// }
-
-// const GroupNode = (x, y) => {
-//     this.x = x
-//     this.y = y
-//     this.leftRelated = []
-//     this.rightRelated = []
-//     this.grouped = false
-
-//     this.isLeftEnd = () => {
-//         for (let i = 0; i < this.leftRelated.length; i++) {
-//             if (this.leftRelated[i].grouped) return true
-//         }
-//         return false
-//     }
-
-//     this.isRightEnd = () => {
-//         for (let i = 0; i < this.rightRelated.length; i++) {
-//             if (this.rightRelated[i].grouped) return true
-//         }
-//         return false
-//     }
-// }
 
 const offset = [
     { x: 0, y: 0 },

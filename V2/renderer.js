@@ -75,26 +75,26 @@ class Renderer {
         }
     }
 
-    drawSingleBlock(color, x, y, shadeOn, transparency) {
-        this.hCtx.beginPath()
-        if (transparency) {
-            this.hCtx.fillStyle = this.colorProvider.getTColor(color)
-        } else {
-            this.hCtx.fillStyle = this.colorProvider.getOriginalColor(color)
-        }
+    // drawSingleBlock(color, x, y, shadeOn, transparency) {
+    //     this.hCtx.beginPath()
+    //     if (transparency) {
+    //         this.hCtx.fillStyle = this.colorProvider.getTColor(color)
+    //     } else {
+    //         this.hCtx.fillStyle = this.colorProvider.getOriginalColor(color)
+    //     }
 
-        this.hCtx.rect(x * this.unit + 1, y * this.unit + 1, this.unit - 2, this.unit - 2)
-        this.hCtx.fill()
-        this.hCtx.closePath()
-        if (shadeOn === false) return
+    //     this.hCtx.rect(x * this.unit + 1, y * this.unit + 1, this.unit - 2, this.unit - 2)
+    //     this.hCtx.fill()
+    //     this.hCtx.closePath()
+    //     if (shadeOn === false) return
 
-        this.hCtx.fillStyle = this.colorProvider.getShadeColor(color)
-        this.hCtx.lineWidth = this.shade + 1
-        this.hCtx.beginPath()
-        this.hCtx.rect(x * this.unit + this.shade, y * this.unit + this.shade, this.unit - 2 * this.shade, this.unit - 2 * this.shade)
-        this.hCtx.stroke()
-        this.hCtx.closePath()
-    }
+    //     this.hCtx.fillStyle = this.colorProvider.getShadeColor(color)
+    //     this.hCtx.lineWidth = this.shade + 1
+    //     this.hCtx.beginPath()
+    //     this.hCtx.rect(x * this.unit + this.shade, y * this.unit + this.shade, this.unit - 2 * this.shade, this.unit - 2 * this.shade)
+    //     this.hCtx.stroke()
+    //     this.hCtx.closePath()
+    // }
 
     drawBlocks(color, blocks, shadeOn, transparency) {
         if (blocks.length === 0) {
@@ -107,7 +107,7 @@ class Renderer {
             this.hCtx.fillStyle = this.colorProvider.getOriginalColor(color)
         }
         for (let i = 0; i < blocks.length; i++) {
-            this.hCtx.rect(blocks[i].x * this.unit + 1, blocks[i].y * this.unit + 1, this.unit - 2, this.unit - 2)
+            this.hCtx.rect(blocks[i].x + 1, blocks[i].y + 1, this.unit - 2, this.unit - 2)
         }
         this.hCtx.fill()
         this.hCtx.closePath()
@@ -117,7 +117,7 @@ class Renderer {
         this.hCtx.lineWidth = this.shade + 1
         this.hCtx.beginPath()
         for (let i = 0; i < blocks.length; i++) {
-            this.hCtx.rect(blocks[i].x * this.unit + this.shade, blocks[i].y * this.unit + this.shade, this.unit - 2 * this.shade, this.unit - 2 * this.shade)
+            this.hCtx.rect(blocks[i].x + this.shade, blocks[i].y + this.shade, this.unit - 2 * this.shade, this.unit - 2 * this.shade)
         }
         this.hCtx.stroke()
         this.hCtx.closePath()
@@ -130,12 +130,13 @@ class Renderer {
         let renderC2 = []
         switch (game.state) {
             case gameState.started:
+                this.hCtx.clearRect(0, 0, this.hCanvas.width, this.hCanvas.height)
                 //render falling
                 if (game.currentMovingBlock.pattern.length !== 0) {
                     for (let i = 0; i < 4; i++) {
                         let currentBlock = game.currentMovingBlock.getPosition(i)
-                        currentBlock.x += this.adjustX
-                        currentBlock.y += this.adjustY
+                        currentBlock.x = (currentBlock.x + this.adjustX) * this.unit
+                        currentBlock.y = (currentBlock.y + this.adjustY) * this.unit
                         if (game.currentMovingBlock.pattern[i] === game.innerColor.C1) {
                             renderC1.push(currentBlock)
                         } else {
@@ -143,6 +144,23 @@ class Renderer {
                         }
                     }
                 }
+                for (let c = 0; c < this.column; c++) {
+                    let currentC1 = game.board.C1[c]
+                    let currentC2 = game.board.C2[c]
+                    for (let r = 0; r < this.row; r++) {
+                        if (currentC1 & 1 === 1) {
+                            renderC1.push({ x: (this.adjustX + c) * this.unit, y: (this.adjustY + 1 + this.row - r) * this.unit })
+                        } else if (currentC2 & 1 === 1) {
+                            renderC2.push({ x: (this.adjustX + c) * this.unit, y: (this.adjustY + 1 + this.row - r) * this.unit })
+                        }
+                        currentC1 >>= 1
+                        currentC2 >>= 1
+                    }
+                }
+                this.drawBlocks(this.colorProvider.enum.C1, renderC1, true, false)
+                this.drawBlocks(this.colorProvider.enum.C2, renderC2, true, false)
+                this.renderScanner(game.scanner, 1 - game.scannerCounter / game.scanTick, game.scannerScore)
+                break
             case gameState.result:
                 this.hCtx.clearRect(0, 0, this.hCanvas.width, this.hCanvas.height)
                 for (let c = 0; c < this.column; c++) {
@@ -150,9 +168,9 @@ class Renderer {
                     let currentC2 = game.board.C2[c]
                     for (let r = 0; r < this.row; r++) {
                         if (currentC1 & 1 === 1) {
-                            renderC1.push({ x: this.adjustX + c, y: this.adjustY + 1 + this.row - r })
+                            renderC1.push({ x: (this.adjustX + c) * this.unit, y: (this.adjustY + 1 + this.row - r) * this.unit })
                         } else if (currentC2 & 1 === 1) {
-                            renderC2.push({ x: this.adjustX + c, y: this.adjustY + 1 + this.row - r })
+                            renderC2.push({ x: (this.adjustX + c) * this.unit, y: (this.adjustY + 1 + this.row - r) * this.unit })
                         }
                         currentC1 >>= 1
                         currentC2 >>= 1
@@ -175,7 +193,7 @@ class Renderer {
             const effect = this.effectList[i]
             switch (effect.kind) {
                 case effectKind.grouped:
-                    this.renderSquare(effect.x, effect.y, effect.timeLeft / effect.time)
+                    this.renderGrouped(effect.x, effect.y, effect.timeLeft / effect.time)
                     break
                 case effectKind.cleared:
                     this.renderShatteredBlock(effect.x, effect.y, effect.timeLeft / effect.time)
@@ -198,8 +216,8 @@ class Renderer {
         this.effectList.push(effect)
     }
 
-    renderSquare(x, y, process) {
-        const xBase = (x + this.adjustX - process) * this.unit
+    renderGrouped(x, y, process) {
+        const xBase = (x - 1 + this.adjustX - process) * this.unit
         const yBase = (y + this.adjustY - process) * this.unit
         this.hCtx.strokeStyle = 'rgba(255, 255, 255, ' + (0.5 - (process / 2)) + ')'//'rgba(255, 255, 0, 0.9)'
         this.hCtx.lineWidth = this.shade + 1
@@ -228,6 +246,42 @@ class Renderer {
         this.hCtx.rect(xBase + 1, yBase + size - shortW, longW - 1, shortW - 1)
         this.hCtx.rect(xBase + size - shortW, yBase + shortW, shortW - 1, longW - 1)
         this.hCtx.fill()
+        this.hCtx.closePath()
+    }
+
+    renderScanner(x, process, score) {
+        const baseX = x + this.adjustX + process
+        const baseXUnit = baseX * this.unit
+        const baseYUnit = (this.adjustY + 2) * this.unit
+
+        this.hCtx.beginPath()
+        this.hCtx.lineWidth = 8
+        this.hCtx.strokeStyle = 'rgba(255, 0, 0, 0.4)'
+        this.hCtx.moveTo(baseXUnit, baseYUnit)
+        this.hCtx.lineTo(baseXUnit, baseYUnit + this.edgeY)
+        this.hCtx.stroke()
+
+        this.hCtx.lineWidth = 6
+        this.hCtx.strokeStyle = 'rgba(255, 128, 128, 0.4)'
+        this.hCtx.moveTo(baseXUnit, baseYUnit)
+        this.hCtx.lineTo(baseXUnit, baseYUnit + this.edgeY)
+        this.hCtx.stroke()
+
+        this.hCtx.lineWidth = 2
+        this.hCtx.strokeStyle = 'rgba(255, 255, 255, 1)'
+        this.hCtx.moveTo(baseXUnit, baseYUnit)
+        this.hCtx.lineTo(baseXUnit, baseYUnit + this.edgeY)
+        this.hCtx.stroke()
+
+        this.hCtx.font = ~~(this.unit * 3 / 4) + "px Microsoft JhengHei"
+        this.hCtx.fillStyle = 'rgb(255, 255, 255)'
+        this.hCtx.fillText(score, (baseX - 1.1) * this.unit, (this.adjustY + 1.9) * this.unit)
+
+        this.hCtx.rect((baseX - 2) * this.unit, (this.adjustY + 1.2) * this.unit, 2 * this.unit, 0.8 * this.unit)
+        this.hCtx.moveTo(baseXUnit, (this.adjustY + 1.2) * this.unit)
+        this.hCtx.lineTo((baseX + 0.5) * this.unit, (this.adjustY + 1.6) * this.unit)
+        this.hCtx.lineTo(baseXUnit, baseYUnit)
+        this.hCtx.stroke()
         this.hCtx.closePath()
     }
 
