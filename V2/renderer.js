@@ -217,7 +217,7 @@ class Renderer {
     }
 
     renderGrouped(x, y, process) {
-        const xBase = (x - 1 + this.adjustX - process) * this.unit
+        const xBase = (x + this.adjustX - process) * this.unit
         const yBase = (y + this.adjustY - process) * this.unit
         this.hCtx.strokeStyle = 'rgba(255, 255, 255, ' + (0.5 - (process / 2)) + ')'//'rgba(255, 255, 0, 0.9)'
         this.hCtx.lineWidth = this.shade + 1

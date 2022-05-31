@@ -75,6 +75,8 @@ const Game =
             C2: []
         }
 
+        this.groupHandler = new GroupHandler(this.column, this.row)
+
         this.dropLock = false
 
         function generateBlockNumber() {
@@ -177,6 +179,7 @@ const Game =
                 C1: [],
                 C2: []
             }
+            this.groupHandler.reset()
 
             this.dropLock = false
             console.log('start!')
@@ -368,11 +371,13 @@ const Game =
             const mask = 3 << (y - 1)
             if ((this.board.C1[x] & this.board.C1[x + 1] & mask) == mask) {
                 console.log('C1 group', x, y)
-                this.addGroup(this.grouped.C1, x + 1, y)
+                this.addGroup(this.grouped.C1, x, y)
+                this.groupHandler.addGrouped(INNER_COLOR.C1, x, y)
             }
             else if ((this.board.C2[x] & this.board.C2[x + 1] & mask) == mask) {
                 console.log('C2 group', x, y)
-                this.addGroup(this.grouped.C2, x + 1, y)
+                this.addGroup(this.grouped.C2, x, y)
+                this.groupHandler.addGrouped(INNER_COLOR.C2, x, y)
             }
         }
         this.addGroup = (target, x, y) => {
@@ -420,7 +425,8 @@ const Game =
             // }
 
             // console.log('checkRelatedAndclear', currentColumn)
-            return currentColumn.length
+            // return currentColumn.length
+            return 0
         }
 
         this.checkWholeBoard = () => {
@@ -628,6 +634,161 @@ const FallingBlock = function (ticker, row, column) {
         return ({
             C1, C2
         })
+    }
+}
+
+const GroupHandler = function (column, row) {
+    let board = {
+        C1: [],
+        C2: []
+    }
+    this.nextGroup = 0
+
+    const rowLimit = row - 1
+    const columnLimit = column - 1
+
+    this.reset = () => {
+        for (let c = 0; c < columnLimit; c++) {
+            board.C1[c] = []
+            board.C2[c] = []
+            for (let r = 0; r < rowLimit; r++) {
+                board.C1[c][r] = -1
+                board.C2[c][r] = -1
+            }
+        }
+        this.nextGroup = 0
+    }
+    this.reset()
+
+    this.getBoard = () => {
+        return board
+    }
+
+    this.findRelated = (board, x, y) => {
+        let candidate = []
+
+        const xNotFirst = x > 0
+        const xNotLast = x < columnLimit - 1
+        const yNotFirst = y > 0
+        const yNotLast = y < rowLimit - 1
+
+        if (xNotFirst) {
+            if (board[x - 1][y] !== -1)
+                candidate.push(board[x - 1][y])
+            if (yNotFirst && board[x - 1][y - 1] !== -1)
+                candidate.push(board[x - 1][y - 1])
+            if (yNotLast && board[x - 1][y + 1] !== -1)
+                candidate.push(board[x - 1][y + 1])
+        }
+
+        if (board[x][y] !== -1)
+            candidate.push(board[x][y])
+        if (yNotFirst && board[x][y - 1] !== -1)
+            candidate.push(board[x][y - 1])
+        if (yNotLast && board[x][y + 1] !== -1)
+            candidate.push(board[x][y + 1])
+
+        if (xNotLast) {
+            if (board[x + 1][y] !== -1)
+                candidate.push(board[x + 1][y])
+            if (yNotFirst && board[x + 1][y - 1] !== -1)
+                candidate.push(board[x + 1][y - 1])
+            if (yNotLast && board[x + 1][y + 1] !== -1)
+                candidate.push(board[x + 1][y + 1])
+        }
+
+        console.log('before', candidate)
+        candidate.sort((a, b) => a - b)
+        candidate = candidate.filter((v, idx) => {
+            if (idx === 0) return true
+            return v !== candidate[idx - 1]
+        })
+        console.log('after', candidate)
+        const target = candidate.shift()
+        if (target !== undefined) {
+            console.log('shifted', candidate)
+            for (let i = 0; i < candidate.length; i++) {
+                this.mergeGroupBToA(board, target, candidate[i])
+            }
+            console.log('group', target)
+            return target
+        } else {
+            let target = this.nextGroup
+            this.nextGroup++
+            console.log('group', target)
+            return target
+        }
+    }
+
+    this.addGrouped = (color, x, y) => {
+        switch (color) {
+            case INNER_COLOR.C1:
+                board.C1[x][y] = this.findRelated(board.C1, x, y)
+                console.log('board.C1', board.C1)
+                break
+            case INNER_COLOR.C2:
+                board.C2[x][y] = this.findRelated(board.C2, x, y)
+                console.log('board.C2', board.C2)
+                break
+            default:
+                console.error(`GroupHandler.addGrouped color: ${color}`)
+        }
+    }
+
+    this.clearGroup = (color, group) => {
+        let target
+        switch (color) {
+            case INNER_COLOR.C1:
+                target = board.C1
+                break
+            case INNER_COLOR.C2:
+                target = board.C2
+                break
+            default:
+                console.error(`GroupHandler.clearGroup color: ${color}`)
+        }
+        for (let c = 0; c < columnLimit; c++) {
+            for (let r = 0; r < rowLimit; r++) {
+                if (target[c][r] === group)
+                    target[c][r] = -1
+            }
+        }
+    }
+
+    this.mergeGroupBToA = (target, groupA, groupB) => {
+        if (groupA === groupB) {
+            console.warn(`same group blocked: ${groupA}`)
+            return
+        }
+        for (let c = 0; c < columnLimit; c++) {
+            for (let r = 0; r < rowLimit; r++) {
+                if (target[c][r] === groupB) target[c][r] = groupA
+            }
+        }
+        console.log(`mergeGroup ${groupB} to ${groupA}`)
+    }
+
+    this.getClearMapAndUpdate = (groups) => {
+        let result = []
+        for (let c = 0; c < columnLimit; c++) {
+            let currentColumn = 0
+            let mask = 3
+            for (let r = 0; r < rowLimit; r++) {
+                const groupC1 = board.C1[c][r]
+                const groupC2 = board.C2[c][r]
+                if ((groupC1 !== -1 && groups.indexOf(groupC1) !== -1) || (groupC2 !== -1 && groups.indexOf(groupC2) !== -1)) {
+                    currentColumn |= mask
+                    result[c] |= mask
+
+                    board.C1[c][r] = -1
+                    board.C2[c][r] = -1
+                }
+                mask <<= 1
+            }
+            result.push(currentColumn)
+        }
+        result.push(0)
+        return result
     }
 }
 
