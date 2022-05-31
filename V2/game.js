@@ -721,13 +721,14 @@ const GroupHandler = function (column, row) {
     }
 
     this.addGrouped = (color, x, y) => {
+        const innerY = y - 1
         switch (color) {
             case INNER_COLOR.C1:
-                board.C1[x][y] = this.findRelated(board.C1, x, y)
+                board.C1[x][innerY] = this.findRelated(board.C1, x, innerY)
                 console.log('board.C1', board.C1)
                 break
             case INNER_COLOR.C2:
-                board.C2[x][y] = this.findRelated(board.C2, x, y)
+                board.C2[x][innerY] = this.findRelated(board.C2, x, innerY)
                 console.log('board.C2', board.C2)
                 break
             default:

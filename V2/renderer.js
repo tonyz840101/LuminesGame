@@ -123,69 +123,130 @@ class Renderer {
         this.hCtx.closePath()
     }
 
+    drawGroups() {
+        let renderC1 = []
+        let renderC2 = []
+        const groupHandler = this.game.groupHandler
+        const { C1, C2 } = groupHandler.getBoard()
+        for (let c = 0; c < this.column - 1; c++) {
+            for (let r = 0; r < this.row - 1; r++) {
+                const y = this.row - r + this.adjustY
+                if (C1[c][r] !== -1)
+                    renderC1.push({ x: (this.adjustX + c) * this.unit, y: y * this.unit })
+                if (C2[c][r] !== -1)
+                    renderC2.push({ x: (this.adjustX + c) * this.unit, y: y * this.unit })
+            }
+        }
+        if (renderC1.length)
+            console.log('renderC1', renderC1)
+        this.drawGroupBlocks(this.colorProvider.enum.C1, renderC1)
+
+        if (renderC2.length)
+            console.log('renderC2', renderC2)
+        this.drawGroupBlocks(this.colorProvider.enum.C2, renderC2)
+    }
+
+    drawGroupBlocks(color, blocks) {
+        if (blocks.length === 0) {
+            return
+        }
+        this.hCtx.beginPath()
+        this.hCtx.strokeStyle = this.colorProvider.getOriginalColor(color)
+        let blockWidth = this.unit * 2
+        for (let i = 0; i < blocks.length; i++) {
+            console.log(this.hCtx.strokeStyle)
+            this.hCtx.rect(blocks[i].x + 1, blocks[i].y + 1, blockWidth - 2, blockWidth - 2)
+        }
+        this.hCtx.fill()
+        this.hCtx.closePath()
+
+        // this.hCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)'
+        // this.hCtx.strokeStyle = this.colorProvider.getShadeColor(color)
+        // this.hCtx.lineWidth = (this.shade + 1) * 2
+        // this.hCtx.beginPath()
+        // for (let i = 0; i < blocks.length; i++) {
+        //     this.hCtx.rect(blocks[i].x + this.shade * 2, blocks[i].y + this.shade * 2, blockWidth - 2 * this.shade, blockWidth - 2 * this.shade)
+        // }
+        // this.hCtx.stroke()
+        // this.hCtx.closePath()
+
+
+
+        // this.hCtx.beginPath()
+        // this.hCtx.moveTo((baseX + 1) * this.unit, baseY * this.unit)
+        // this.hCtx.lineTo((baseX + 1) * this.unit, (baseY + 2) * this.unit)
+        // this.hCtx.moveTo(baseX * this.unit, (baseY + 1) * this.unit)
+        // this.hCtx.lineTo((baseX + 2) * this.unit, (baseY + 1) * this.unit)
+        // this.hCtx.stroke()
+        // this.hCtx.closePath()
+
+        // this.hCtx.strokeStyle = 'rgba(255, 255, 255, 0.75)'//'rgba(255, 255, 0, 0.9)'
+        // this.hCtx.lineWidth = this.shade + 1
+        // this.hCtx.beginPath()
+        // this.hCtx.rect(baseX * this.unit + this.shade / 2, baseY * this.unit + this.shade / 2, 2 * this.unit - this.shade, 2 * this.unit - this.shade)
+        // this.hCtx.stroke()
+        // this.hCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)'
+        // this.hCtx.lineWidth = 2
+        // this.hCtx.beginPath()
+        // this.hCtx.rect(baseX * this.unit, baseY * this.unit, 2 * this.unit, 2 * this.unit)
+        // this.hCtx.stroke()
+        // this.hCtx.closePath()
+    }
+
+    getRenderBlocks(renderMoving) {
+        let renderC1 = []
+        let renderC2 = []
+        if (renderMoving && this.game.currentMovingBlock.pattern.length !== 0) {
+            for (let i = 0; i < 4; i++) {
+                let currentBlock = this.game.currentMovingBlock.getPosition(i)
+                currentBlock.x = (currentBlock.x + this.adjustX) * this.unit
+                currentBlock.y = (currentBlock.y + this.adjustY) * this.unit
+                if (this.game.currentMovingBlock.pattern[i] === this.game.innerColor.C1) {
+                    renderC1.push(currentBlock)
+                } else {
+                    renderC2.push(currentBlock)
+                }
+            }
+        }
+        for (let c = 0; c < this.column; c++) {
+            let currentC1 = this.game.board.C1[c]
+            let currentC2 = this.game.board.C2[c]
+            for (let r = 0; r < this.row; r++) {
+                if (currentC1 & 1 === 1) {
+                    renderC1.push({ x: (this.adjustX + c) * this.unit, y: (this.adjustY + 1 + this.row - r) * this.unit })
+                } else if (currentC2 & 1 === 1) {
+                    renderC2.push({ x: (this.adjustX + c) * this.unit, y: (this.adjustY + 1 + this.row - r) * this.unit })
+                }
+                currentC1 >>= 1
+                currentC2 >>= 1
+            }
+        }
+        return { renderC1, renderC2 }
+    }
+
     render(deltaTime) {
         const game = this.game
         // console.log('deltaTime', deltaTime)
-        let renderC1 = []
-        let renderC2 = []
         switch (game.state) {
             case gameState.started:
                 this.hCtx.clearRect(0, 0, this.hCanvas.width, this.hCanvas.height)
                 //render falling
-                if (game.currentMovingBlock.pattern.length !== 0) {
-                    for (let i = 0; i < 4; i++) {
-                        let currentBlock = game.currentMovingBlock.getPosition(i)
-                        currentBlock.x = (currentBlock.x + this.adjustX) * this.unit
-                        currentBlock.y = (currentBlock.y + this.adjustY) * this.unit
-                        if (game.currentMovingBlock.pattern[i] === game.innerColor.C1) {
-                            renderC1.push(currentBlock)
-                        } else {
-                            renderC2.push(currentBlock)
-                        }
-                    }
+                {
+                    let { renderC1, renderC2 } = this.getRenderBlocks(true)
+                    this.drawBlocks(this.colorProvider.enum.C1, renderC1, true, false)
+                    this.drawBlocks(this.colorProvider.enum.C2, renderC2, true, false)
+                    this.drawGroups()
                 }
-                for (let c = 0; c < this.column; c++) {
-                    let currentC1 = game.board.C1[c]
-                    let currentC2 = game.board.C2[c]
-                    for (let r = 0; r < this.row; r++) {
-                        if (currentC1 & 1 === 1) {
-                            renderC1.push({ x: (this.adjustX + c) * this.unit, y: (this.adjustY + 1 + this.row - r) * this.unit })
-                        } else if (currentC2 & 1 === 1) {
-                            renderC2.push({ x: (this.adjustX + c) * this.unit, y: (this.adjustY + 1 + this.row - r) * this.unit })
-                        }
-                        currentC1 >>= 1
-                        currentC2 >>= 1
-                    }
-                }
-                this.drawBlocks(this.colorProvider.enum.C1, renderC1, true, false)
-                this.drawBlocks(this.colorProvider.enum.C2, renderC2, true, false)
                 this.renderScanner(game.scanner, 1 - game.scannerCounter / game.scanTick, game.scannerScore)
                 break
             case gameState.result:
                 this.hCtx.clearRect(0, 0, this.hCanvas.width, this.hCanvas.height)
-                for (let c = 0; c < this.column; c++) {
-                    let currentC1 = game.board.C1[c]
-                    let currentC2 = game.board.C2[c]
-                    for (let r = 0; r < this.row; r++) {
-                        if (currentC1 & 1 === 1) {
-                            renderC1.push({ x: (this.adjustX + c) * this.unit, y: (this.adjustY + 1 + this.row - r) * this.unit })
-                        } else if (currentC2 & 1 === 1) {
-                            renderC2.push({ x: (this.adjustX + c) * this.unit, y: (this.adjustY + 1 + this.row - r) * this.unit })
-                        }
-                        currentC1 >>= 1
-                        currentC2 >>= 1
-                    }
+                {
+                    let { renderC1, renderC2 } = this.getRenderBlocks(false)
+                    this.drawBlocks(this.colorProvider.enum.C1, renderC1, true, false)
+                    this.drawBlocks(this.colorProvider.enum.C2, renderC2, true, false)
+                    this.drawGroups()
                 }
-                //render group
-                //render scanner
-                // for (let i = 0; i < renderC1.length; i++) {
-                //     this.drawSingleBlock(this.colorProvider.enum.C1, renderC1[i].x, renderC1[i].y, true, false)
-                // }
-                // for (let i = 0; i < renderC2.length; i++) {
-                //     this.drawSingleBlock(this.colorProvider.enum.C2, renderC2[i].x, renderC2[i].y, true, false)
-                // }
-                this.drawBlocks(this.colorProvider.enum.C1, renderC1, true, false)
-                this.drawBlocks(this.colorProvider.enum.C2, renderC2, true, false)
                 break
         }
 
@@ -193,7 +254,7 @@ class Renderer {
             const effect = this.effectList[i]
             switch (effect.kind) {
                 case effectKind.grouped:
-                    this.renderGrouped(effect.x, effect.y, effect.timeLeft / effect.time)
+                    this.renderGroupedEffect(effect.x, effect.y, effect.timeLeft / effect.time)
                     break
                 case effectKind.cleared:
                     this.renderShatteredBlock(effect.x, effect.y, effect.timeLeft / effect.time)
@@ -216,7 +277,7 @@ class Renderer {
         this.effectList.push(effect)
     }
 
-    renderGrouped(x, y, process) {
+    renderGroupedEffect(x, y, process) {
         const xBase = (x + this.adjustX - process) * this.unit
         const yBase = (y + this.adjustY - process) * this.unit
         this.hCtx.strokeStyle = 'rgba(255, 255, 255, ' + (0.5 - (process / 2)) + ')'//'rgba(255, 255, 0, 0.9)'
