@@ -150,11 +150,10 @@ class Renderer {
         if (blocks.length === 0) {
             return
         }
+        this.hCtx.fillStyle = this.colorProvider.getOriginalColor(color)
         this.hCtx.beginPath()
-        this.hCtx.strokeStyle = this.colorProvider.getOriginalColor(color)
         let blockWidth = this.unit * 2
         for (let i = 0; i < blocks.length; i++) {
-            console.log(this.hCtx.strokeStyle)
             this.hCtx.rect(blocks[i].x + 1, blocks[i].y + 1, blockWidth - 2, blockWidth - 2)
         }
         this.hCtx.fill()
