@@ -129,6 +129,7 @@ class Renderer {
         const groupHandler = this.game.groupHandler
         const { C1, C2 } = groupHandler.getBoard()
         for (let c = 0; c < this.column - 1; c++) {
+            // for (let r = this.row - 2; r >= 0; r--) {
             for (let r = 0; r < this.row - 1; r++) {
                 const y = this.row - r + this.adjustY
                 if (C1[c][r] !== -1)
@@ -137,12 +138,7 @@ class Renderer {
                     renderC2.push({ x: (this.adjustX + c) * this.unit, y: y * this.unit })
             }
         }
-        if (renderC1.length)
-            console.log('renderC1', renderC1)
         this.drawGroupBlocks(this.colorProvider.enum.C1, renderC1)
-
-        if (renderC2.length)
-            console.log('renderC2', renderC2)
         this.drawGroupBlocks(this.colorProvider.enum.C2, renderC2)
     }
 
@@ -150,24 +146,33 @@ class Renderer {
         if (blocks.length === 0) {
             return
         }
+        blocks.sort(groupCompare)
         this.hCtx.fillStyle = this.colorProvider.getOriginalColor(color)
-        this.hCtx.beginPath()
         let blockWidth = this.unit * 2
         for (let i = 0; i < blocks.length; i++) {
+            this.hCtx.beginPath()
             this.hCtx.rect(blocks[i].x + 1, blocks[i].y + 1, blockWidth - 2, blockWidth - 2)
-        }
-        this.hCtx.fill()
-        this.hCtx.closePath()
+            this.hCtx.fill()
 
-        // this.hCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)'
-        // this.hCtx.strokeStyle = this.colorProvider.getShadeColor(color)
-        // this.hCtx.lineWidth = (this.shade + 1) * 2
-        // this.hCtx.beginPath()
+            this.hCtx.strokeStyle = 'rgba(255, 255, 255, 0.75)'
+            this.hCtx.lineWidth = this.shade + 1
+            this.hCtx.rect(blocks[i].x + this.shade / 2, blocks[i].y + this.shade / 2, blockWidth - this.shade, blockWidth - this.shade)
+
+            this.hCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)'
+            this.hCtx.lineWidth = 2
+            this.hCtx.rect(blocks[i].x, blocks[i].y, blockWidth, blockWidth)
+
+            this.hCtx.stroke()
+            this.hCtx.closePath()
+        }
+        // // this.hCtx.closePath()
+
+        // // this.hCtx.beginPath()
         // for (let i = 0; i < blocks.length; i++) {
-        //     this.hCtx.rect(blocks[i].x + this.shade * 2, blocks[i].y + this.shade * 2, blockWidth - 2 * this.shade, blockWidth - 2 * this.shade)
+
         // }
-        // this.hCtx.stroke()
-        // this.hCtx.closePath()
+
+        this.hCtx.closePath()
 
 
 
@@ -350,6 +355,12 @@ class Renderer {
 
     //     window.getNextA
     // }
+}
+
+function groupCompare(a, b) {
+    if (b.y !== a.y) return a.y - b.y
+    if (b.x !== a.x) return a.x - b.x
+    console.error('got same group')
 }
 
 const effectKind = {
