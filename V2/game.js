@@ -77,7 +77,8 @@ const Game =
 
         this.groupHandler = new GroupHandler(this.column, this.row)
 
-        this.dropLock = false
+        // 0 => natural; 1 => speed up; 2 => stopped
+        this.dropState = 0
 
         function generateBlockNumber() {
             return ~~(Math.random() * 16)
@@ -181,15 +182,21 @@ const Game =
             }
             this.groupHandler.reset()
 
-            this.dropLock = false
+            this.dropState = 0
+
             console.log('start!')
         }
 
         this.startedState = () => {
             if (this.ticker > 0) {
                 if (!this.paused) {
-                    this.currentMovingBlock.fall()
-                    this.checkAndPlaceCurrentMovingBlock()
+                    if (this.dropState === 1) {
+                        this.currentMovingBlock.moveDown()
+                        this.dropState = this.checkAndPlaceCurrentMovingBlock() ? 2 : 1
+                    } else {
+                        this.currentMovingBlock.fall()
+                        this.checkAndPlaceCurrentMovingBlock()
+                    }
                     this.moveScanner()
 
                     this.ticker--
@@ -500,13 +507,12 @@ const Game =
                     return
                 case gameState.started:
                     if (up) {
-                        if (this.dropLock) this.dropLock = false
+                        this.dropState = 0
                         return
                     } else {
-                        if (this.dropLock) return
+                        if (this.dropState === 2) return
                         if (!develop && this.paused) return
-                        this.currentMovingBlock.moveDown()
-                        this.dropLock = this.checkAndPlaceCurrentMovingBlock()
+                        this.dropState = 1
                         return
                     }
             }
