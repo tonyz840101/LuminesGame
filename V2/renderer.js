@@ -10,6 +10,7 @@ class Renderer {
         this.column = config.column || 16
         this.row = config.row || 10
         this.shade = config.shade || 3
+        this.scannerEffecrUnitWidth = 2
 
         this.colorProvider = colorProvider
 
@@ -228,32 +229,7 @@ class Renderer {
         return { renderC1, renderC2 }
     }
 
-    render(deltaTime) {
-        const game = this.game
-        // console.log('deltaTime', deltaTime)
-        switch (game.state) {
-            case gameState.started:
-                this.hCtx.clearRect(0, 0, this.hCanvas.width, this.hCanvas.height)
-                //render falling
-                {
-                    let { renderC1, renderC2 } = this.getRenderBlocks(true)
-                    this.drawBlocks(this.colorProvider.enum.C1, renderC1, true, false)
-                    this.drawBlocks(this.colorProvider.enum.C2, renderC2, true, false)
-                    this.drawGroups()
-                }
-                this.renderScanner(game.scanner, 1 - game.scannerCounter / game.scanTick, game.scannerScore)
-                break
-            case gameState.result:
-                this.hCtx.clearRect(0, 0, this.hCanvas.width, this.hCanvas.height)
-                {
-                    let { renderC1, renderC2 } = this.getRenderBlocks(false)
-                    this.drawBlocks(this.colorProvider.enum.C1, renderC1, true, false)
-                    this.drawBlocks(this.colorProvider.enum.C2, renderC2, true, false)
-                    this.drawGroups()
-                }
-                break
-        }
-
+    renderEffect(deltaTime) {
         for (let i = 0; i < this.effectList.length; i++) {
             const effect = this.effectList[i]
             switch (effect.kind) {
@@ -270,6 +246,39 @@ class Renderer {
                 effect.timeLeft -= deltaTime
         }
         this.effectList = this.effectList.filter(v => v.timeLeft > 0)
+
+    }
+
+    render(deltaTime) {
+        const game = this.game
+        // console.log('deltaTime', deltaTime)
+        switch (game.state) {
+            case gameState.started:
+                this.hCtx.clearRect(0, 0, this.hCanvas.width, this.hCanvas.height)
+                //render falling
+                {
+                    let { renderC1, renderC2 } = this.getRenderBlocks(true)
+                    this.drawBlocks(this.colorProvider.enum.C1, renderC1, true, false)
+                    this.drawBlocks(this.colorProvider.enum.C2, renderC2, true, false)
+                    this.drawGroups()
+                }
+                this.renderEffect(deltaTime)
+                this.renderScanner(game.scanner, 1 - game.scannerCounter / game.scanTick, game.scannerScore)
+                break
+            case gameState.result:
+                this.hCtx.clearRect(0, 0, this.hCanvas.width, this.hCanvas.height)
+                {
+                    let { renderC1, renderC2 } = this.getRenderBlocks(false)
+                    this.drawBlocks(this.colorProvider.enum.C1, renderC1, true, false)
+                    this.drawBlocks(this.colorProvider.enum.C2, renderC2, true, false)
+                    this.drawGroups()
+                }
+                this.renderEffect(deltaTime)
+                break
+            default:
+                this.renderEffect(deltaTime)
+                break
+        }
 
         window.requestAnimationFrame(() => this.render(this.getDeltaTime()))
     }
@@ -319,18 +328,28 @@ class Renderer {
         const baseXUnit = baseX * this.unit
         const baseYUnit = (this.adjustY + 2) * this.unit
 
-        this.hCtx.beginPath()
-        this.hCtx.lineWidth = 8
-        this.hCtx.strokeStyle = 'rgba(255, 0, 0, 0.4)'
-        this.hCtx.moveTo(baseXUnit, baseYUnit)
-        this.hCtx.lineTo(baseXUnit, baseYUnit + this.edgeY)
-        this.hCtx.stroke()
+        const grd = this.hCtx.createLinearGradient((baseX - this.scannerEffecrUnitWidth) * this.unit, 0, baseXUnit, 0)
+        grd.addColorStop(0, 'rgba(255, 255, 255, 0)')
+        grd.addColorStop(1, 'rgba(255, 255, 255, 0.8)')
 
-        this.hCtx.lineWidth = 6
-        this.hCtx.strokeStyle = 'rgba(255, 128, 128, 0.4)'
-        this.hCtx.moveTo(baseXUnit, baseYUnit)
-        this.hCtx.lineTo(baseXUnit, baseYUnit + this.edgeY)
-        this.hCtx.stroke()
+        this.hCtx.beginPath()
+        this.hCtx.fillStyle = grd
+        const start = Math.max(baseX - this.scannerEffecrUnitWidth, this.adjustX)
+        this.hCtx.fillRect(start * this.unit, baseYUnit, (baseX - start) * this.unit, this.edgeY)
+
+        // this.hCtx.lineWidth = 8
+        // // this.hCtx.strokeStyle = 'rgba(255, 0, 0, 0.4)'
+        // this.hCtx.strokeStyle = 'rgba(255, 255, 255, 0.4)'
+        // this.hCtx.moveTo(baseXUnit, baseYUnit)
+        // this.hCtx.lineTo(baseXUnit, baseYUnit + this.edgeY)
+        // this.hCtx.stroke()
+
+        // this.hCtx.lineWidth = 6
+        // // this.hCtx.strokeStyle = 'rgba(255, 128, 128, 0.4)'
+        // this.hCtx.strokeStyle = 'rgba(128, 128, 128, 0.4)'
+        // this.hCtx.moveTo(baseXUnit, baseYUnit)
+        // this.hCtx.lineTo(baseXUnit, baseYUnit + this.edgeY)
+        // this.hCtx.stroke()
 
         this.hCtx.lineWidth = 2
         this.hCtx.strokeStyle = 'rgba(255, 255, 255, 1)'

@@ -239,6 +239,7 @@ const Game =
                 this.scannerCounter = this.scanTick
                 if (this.scanner > 0) {
                     console.log(`do clear ${this.scanner}`)
+
                     this.scannerScore +=
                         this.checkRelatedAndclear(this.grouped.C1, this.board.C1[this.scanner])
                         + this.checkRelatedAndclear(this.grouped.C2, this.board.C2[this.scanner])
@@ -742,6 +743,17 @@ const GroupHandler = function (column, row) {
         }
     }
 
+    this.isGrouped = (x, y) => {
+        const innerY = y - 1
+        const xNotFirst = x > 0
+        const xNotLast = x < columnLimit - 1
+        const yNotFirst = y > 0
+        const yNotLast = y < rowLimit - 1
+
+
+        return true
+    }
+
     this.clearGroup = (color, group) => {
         let target
         switch (color) {
@@ -775,28 +787,28 @@ const GroupHandler = function (column, row) {
         console.log(`mergeGroup ${groupB} to ${groupA}`)
     }
 
-    this.getClearMapAndUpdate = (groups) => {
-        let result = []
-        for (let c = 0; c < columnLimit; c++) {
-            let currentColumn = 0
-            let mask = 3
-            for (let r = 0; r < rowLimit; r++) {
-                const groupC1 = board.C1[c][r]
-                const groupC2 = board.C2[c][r]
-                if ((groupC1 !== -1 && groups.indexOf(groupC1) !== -1) || (groupC2 !== -1 && groups.indexOf(groupC2) !== -1)) {
-                    currentColumn |= mask
-                    result[c] |= mask
+    // this.getClearMapAndUpdate = (groups) => {
+    //     let result = []
+    //     for (let c = 0; c < columnLimit; c++) {
+    //         let currentColumn = 0
+    //         let mask = 3
+    //         for (let r = 0; r < rowLimit; r++) {
+    //             const groupC1 = board.C1[c][r]
+    //             const groupC2 = board.C2[c][r]
+    //             if ((groupC1 !== -1 && groups.indexOf(groupC1) !== -1) || (groupC2 !== -1 && groups.indexOf(groupC2) !== -1)) {
+    //                 currentColumn |= mask
+    //                 result[c] |= mask
 
-                    board.C1[c][r] = -1
-                    board.C2[c][r] = -1
-                }
-                mask <<= 1
-            }
-            result.push(currentColumn)
-        }
-        result.push(0)
-        return result
-    }
+    //                 board.C1[c][r] = -1
+    //                 board.C2[c][r] = -1
+    //             }
+    //             mask <<= 1
+    //         }
+    //         result.push(currentColumn)
+    //     }
+    //     result.push(0)
+    //     return result
+    // }
 }
 
 const offset = [
