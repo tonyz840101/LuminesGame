@@ -23,7 +23,7 @@ const KEYCODE = {
     Z: 90,
 }
 const game = new Game({
-
+    tickPerSecond: 80
 })
 document.addEventListener("keydown", (e) => game.handleKeyDown(e), false);
 document.addEventListener("keyup", (e) => game.handleKeyUp(e), false);

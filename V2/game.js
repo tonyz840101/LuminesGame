@@ -1,4 +1,4 @@
-const countDownSec = 0//3
+const countDownSec = 0 //3
 const Game =
     function (setting) {
         /*
@@ -63,17 +63,16 @@ const Game =
             //for record
             input: 11,
             blockGenerated: 21,
-            blockPlaced: 22,//might not be usful
+            blockPlaced: 22, //might not be usful
         }
 
-        this.score = 0
-        this.scannerScore = 0
-        this.scanner = 0
-        this.scannerCounter = this.scanTick
         this.grouped = {
             C1: [],
             C2: []
         }
+
+        this.scanner = new Scanner(this.column, this.row, this.scanTick)
+
 
         this.groupHandler = new GroupHandler(this.column, this.row)
 
@@ -172,14 +171,11 @@ const Game =
             }
             this.initBoard()
 
-            this.score = 0
-            this.scannerScore = 0
-            this.scanner = 0
-            this.scannerCounter = this.scanTick
             this.grouped = {
                 C1: [],
                 C2: []
             }
+            this.scanner.init()
             this.groupHandler.reset()
 
             this.dropState = 0
@@ -197,7 +193,14 @@ const Game =
                         this.currentMovingBlock.fall()
                         this.checkAndPlaceCurrentMovingBlock()
                     }
-                    this.moveScanner()
+
+                    if (this.scanner.move() && this.scanner.position > 0) {
+                        const clearMap = this.groupHandler.getClearMapAndUpdate(this.scanner.position)
+                        this.applyClearMap(clearMap)
+                        if (this.fillBlank(clearMap)) {
+                            //check & update group
+                        }
+                    }
 
                     this.ticker--
                 }
@@ -230,29 +233,6 @@ const Game =
             }
             console.error('findBottom exceed row')
             return
-        }
-
-        this.moveScanner = () => {
-            if (this.scannerCounter > 0) {
-                this.scannerCounter--
-            } else {
-                this.scannerCounter = this.scanTick
-                if (this.scanner > 0) {
-                    console.log(`do clear ${this.scanner}`)
-
-                    this.scannerScore +=
-                        this.checkRelatedAndclear(this.grouped.C1, this.board.C1[this.scanner])
-                        + this.checkRelatedAndclear(this.grouped.C2, this.board.C2[this.scanner])
-                    // this.reorgBoard()
-                }
-                this.scanner++
-                if (this.scanner === this.column) {
-                    this.score += this.scannerScore
-                    this.scannerScore = 0
-                    this.scanner = 0
-                }
-                // console.log('scanner at', this.scanner)
-            }
         }
 
         this.checkAndPlaceCurrentMovingBlock = () => {
@@ -381,15 +361,18 @@ const Game =
                 console.log('C1 group', x, y)
                 this.addGroup(this.grouped.C1, x, y)
                 this.groupHandler.addGrouped(INNER_COLOR.C1, x, y)
-            }
-            else if ((this.board.C2[x] & this.board.C2[x + 1] & mask) == mask) {
+            } else if ((this.board.C2[x] & this.board.C2[x + 1] & mask) == mask) {
                 console.log('C2 group', x, y)
                 this.addGroup(this.grouped.C2, x, y)
                 this.groupHandler.addGrouped(INNER_COLOR.C2, x, y)
             }
         }
         this.addGroup = (target, x, y) => {
-            this.emit({ kind: this.eventKind.grouped, x, y })
+            this.emit({
+                kind: this.eventKind.grouped,
+                x,
+                y
+            })
             target.push(y + x * this.row)
             target.sort((a, b) => a - b)
 
@@ -423,28 +406,58 @@ const Game =
         //     }
         //     return related
         // }
-        this.checkRelatedAndclear = (target, board) => {
-            // const currentColumn = target.filter(v => ~~(v / this.row) == this.scanner).map(v => v % this.row)
-            // for(let i = 0; i < currentColumn.length; i ++){
-            //     let related = 7 << (currentColumn[i]-1)
-            //     if (!related) {
-            //         //try clear all related
-            //     }
-            // }
 
-            // console.log('checkRelatedAndclear', currentColumn)
-            // return currentColumn.length
-            return 0
+        this.applyClearMap = (clearMask) => {
+            for (let c = 0; c < this.column - 1; c++) {
+                const currentCol = ~clearMask[c]
+                this.board.C1[c] &= currentCol
+                this.board.C2[c] &= currentCol
+            }
+        }
+
+        this.fillBlank = (clearMask) => {
+            let changed = false
+            for (let c = 0; c < this.column - 1; c++) {
+                if (clearMask === 0) continue
+                let currnetColumn = this.board.C1[c] | this.board.C2[c]
+                let mask = 1
+                if (currnetColumn === 0) continue
+                console.log(currnetColumn.toString(2))
+                for (let r = 0; r < this.row; r++) {
+                    if ((currnetColumn & mask) === 0) {
+                        console.log('find hole')
+                        let reversedMask = ~0 << r
+                        const base = currnetColumn & ~reversedMask
+                        let tail = currnetColumn & reversedMask
+                        if (tail === 0) break
+                        tail >>= 1
+                        let a = 0
+                        console.log(tail)
+                        while ((tail & 1) === 0) {
+                            a++
+                            tail >>= 1
+                            console.log(tail)
+                        }
+                        this.board.C1[c] = (this.board.C1[c] & ~reversedMask) | this.board.C1[c] >> a
+                        this.board.C2[c] = (this.board.C2[c] & ~reversedMask) | this.board.C2[c] >> a
+                        currnetColumn = tail << 1 | base
+                        changed = true
+                        console.log(currnetColumn.toString(2))
+                        r = +a
+                    }
+                    mask <<= 1
+                }
+            }
+            return changed
         }
 
         this.checkWholeBoard = () => {
             for (let c = 0; c < this.column - 1; c++) {
-                for (let r = 1; r < thie.row; r++) {
+                for (let r = 1; r < this.row; r++) {
                     if ((this.board.C1[x] & this.board.C1[x + 1] & mask) == mask) {
                         console.log('C1 group', x, y)
                         this.addGroup(this.grouped.C1, x, y)
-                    }
-                    else if ((this.board.C2[x] & this.board.C2[x + 1] & mask) == mask) {
+                    } else if ((this.board.C2[x] & this.board.C2[x + 1] & mask) == mask) {
                         console.log('C2 group', x, y)
                         this.addGroup(this.grouped.C2, x, y)
                     }
@@ -491,7 +504,7 @@ const Game =
                     return
                 case gameState.started:
                     if (!develop && this.paused) return
-                    this.currentMovingBlock.rotate()
+                    this.currentMovingBlock.rotate(false)
                     return
             }
         }
@@ -590,8 +603,12 @@ const FallingBlock = function (ticker, row, column) {
         }
     }
 
-    this.rotate = () => {
-        this.pattern.push(this.pattern.shift())
+    this.rotate = (counter) => {
+        if (counter) {
+            this.pattern.unshift(this.pattern.pop())
+        } else {
+            this.pattern.push(this.pattern.shift())
+        }
         // console.log(this.pattern)
     }
 
@@ -604,7 +621,8 @@ const FallingBlock = function (ticker, row, column) {
 
     this.getPosition = (pIdx) => {
         return {
-            x: this.x + offset[pIdx].x, y: this.falled + offset[pIdx].y
+            x: this.x + offset[pIdx].x,
+            y: this.falled + offset[pIdx].y
         }
     }
 
@@ -622,7 +640,8 @@ const FallingBlock = function (ticker, row, column) {
             C2 += 1
         }
         return ({
-            C1, C2
+            C1,
+            C2
         })
     }
     this.getRight = () => {
@@ -639,8 +658,71 @@ const FallingBlock = function (ticker, row, column) {
             C2 += 1
         }
         return ({
-            C1, C2
+            C1,
+            C2
         })
+    }
+}
+
+const Scanner = function (column, row, scanTick) {
+    this.score = 0
+    this.currentScore = 0
+    this.position = 0
+    this.counter = scanTick
+    this.scannedBlocks = []
+
+    this.init = () => {
+        for (let c = 0; c < column; c++) {
+            this.scannedBlocks[c] = 0
+        }
+
+        this.score = 0
+        this.currentScore = 0
+        this.position = 0
+        this.counter = scanTick
+    }
+
+    this.process = () => {
+        return this.counter / scanTick
+    }
+
+    this.move = () => {
+        if (this.counter > 0) {
+            this.counter--
+            return false
+        } else {
+            this.counter = scanTick
+            if (this.position > 0) {
+                console.log(`do clear ${this.position}`)
+
+                this.currentScore += 0
+                // this.checkRelatedAndclear(this.grouped.C1, this.board.C1[this.position]) +
+                // this.checkRelatedAndclear(this.grouped.C2, this.board.C2[this.position])
+                // this.reorgBoard()
+            }
+            this.position++
+            if (this.position === column) {
+                this.score += this.currentScore
+                this.currentScore = 0
+                this.position = 0
+            }
+            // console.log('scanner at', this.position)
+            return true
+        }
+    }
+
+    this.checkRelatedAndclear = (target, board) => {
+        // const currentColumn = target.filter(v => ~~(v / this.row) == this.position).map(v => v % this.row)
+        // for(let i = 0; i < currentColumn.length; i ++){
+        //     let related = 7 << (currentColumn[i]-1)
+        //     if (!related) {
+        //         //try clear all related
+        //     }
+        // }
+
+        // console.log('checkRelatedAndclear', currentColumn)
+        // return currentColumn.length
+        return 0
     }
 }
 
@@ -650,6 +732,7 @@ const GroupHandler = function (column, row) {
         C2: []
     }
     this.nextGroup = 0
+    this.groupXMax = new Map()
 
     const rowLimit = row - 1
     const columnLimit = column - 1
@@ -704,16 +787,16 @@ const GroupHandler = function (column, row) {
                 candidate.push(board[x + 1][y + 1])
         }
 
-        console.log('before', candidate)
+        // console.log('before', candidate)
         candidate.sort((a, b) => a - b)
         candidate = candidate.filter((v, idx) => {
             if (idx === 0) return true
             return v !== candidate[idx - 1]
         })
-        console.log('after', candidate)
+        // console.log('after', candidate)
         const target = candidate.shift()
         if (target !== undefined) {
-            console.log('shifted', candidate)
+            // console.log('shifted', candidate)
             for (let i = 0; i < candidate.length; i++) {
                 this.mergeGroupBToA(board, target, candidate[i])
             }
@@ -729,30 +812,37 @@ const GroupHandler = function (column, row) {
 
     this.addGrouped = (color, x, y) => {
         const innerY = y - 1
+        let currentGroup = -1
         switch (color) {
             case INNER_COLOR.C1:
-                board.C1[x][innerY] = this.findRelated(board.C1, x, innerY)
-                console.log('board.C1', board.C1)
+                currentGroup = this.findRelated(board.C1, x, innerY)
+                board.C1[x][innerY] = currentGroup
+                // console.log('board.C1', board.C1)
                 break
             case INNER_COLOR.C2:
-                board.C2[x][innerY] = this.findRelated(board.C2, x, innerY)
-                console.log('board.C2', board.C2)
+                currentGroup = this.findRelated(board.C2, x, innerY)
+                board.C2[x][innerY] = currentGroup
+                // console.log('board.C2', board.C2)
                 break
             default:
                 console.error(`GroupHandler.addGrouped color: ${color}`)
+                return
         }
+        const currentMax = this.groupXMax.get(currentGroup)
+        this.groupXMax.set(currentGroup, Math.max(currentMax ? currentMax : -1, x + 1))
+        console.log('addGrouped', currentGroup, this.groupXMax.get(currentGroup))
     }
 
-    this.isGrouped = (x, y) => {
-        const innerY = y - 1
-        const xNotFirst = x > 0
-        const xNotLast = x < columnLimit - 1
-        const yNotFirst = y > 0
-        const yNotLast = y < rowLimit - 1
+    // this.isGrouped = (x, y) => {
+    //     const innerY = y - 1
+    //     const xNotFirst = x > 0
+    //     const xNotLast = x < columnLimit - 1
+    //     const yNotFirst = y > 0
+    //     const yNotLast = y < rowLimit - 1
 
 
-        return true
-    }
+    //     return true
+    // }
 
     this.clearGroup = (color, group) => {
         let target
@@ -772,6 +862,7 @@ const GroupHandler = function (column, row) {
                     target[c][r] = -1
             }
         }
+        this.groupXMax.delete(group)
     }
 
     this.mergeGroupBToA = (target, groupA, groupB) => {
@@ -785,37 +876,60 @@ const GroupHandler = function (column, row) {
             }
         }
         console.log(`mergeGroup ${groupB} to ${groupA}`)
+        this.groupXMax.delete(groupB)
     }
 
-    // this.getClearMapAndUpdate = (groups) => {
-    //     let result = []
-    //     for (let c = 0; c < columnLimit; c++) {
-    //         let currentColumn = 0
-    //         let mask = 3
-    //         for (let r = 0; r < rowLimit; r++) {
-    //             const groupC1 = board.C1[c][r]
-    //             const groupC2 = board.C2[c][r]
-    //             if ((groupC1 !== -1 && groups.indexOf(groupC1) !== -1) || (groupC2 !== -1 && groups.indexOf(groupC2) !== -1)) {
-    //                 currentColumn |= mask
-    //                 result[c] |= mask
+    this.getClearMapAndUpdate = (scannerPosition) => {
+        console.log('scannerPosition', scannerPosition)
+        let result = []
+        let groupToClear = []
+        for (const [key, value] of this.groupXMax.entries()) {
+            if (value <= scannerPosition) {
+                groupToClear.push(key)
+            }
+        }
 
-    //                 board.C1[c][r] = -1
-    //                 board.C2[c][r] = -1
-    //             }
-    //             mask <<= 1
-    //         }
-    //         result.push(currentColumn)
-    //     }
-    //     result.push(0)
-    //     return result
-    // }
+        for (let c = 0; c < columnLimit; c++) {
+            let currentColumn = 0
+            let mask = 3
+            for (let r = 0; r < rowLimit; r++) {
+                const groupC1 = board.C1[c][r]
+                const groupC2 = board.C2[c][r]
+                if ((groupC1 !== -1 && groupToClear.indexOf(groupC1) !== -1) || (groupC2 !== -1 && groupToClear.indexOf(groupC2) !== -1)) {
+                    currentColumn |= mask
+                    result[c] |= mask
+
+                    board.C1[c][r] = -1
+                    board.C2[c][r] = -1
+                }
+                mask <<= 1
+            }
+            result.push(currentColumn)
+        }
+        result.push(result[14])
+        if (result.reduce((p, v) => p + v, 0)) {
+            console.log(result)
+        }
+        return result
+    }
 }
 
-const offset = [
-    { x: 0, y: 0 },
-    { x: 0, y: 1 },
-    { x: 1, y: 1 },
-    { x: 1, y: 0 },
+const offset = [{
+        x: 0,
+        y: 0
+    },
+    {
+        x: 0,
+        y: 1
+    },
+    {
+        x: 1,
+        y: 1
+    },
+    {
+        x: 1,
+        y: 0
+    },
 ]
 
 const INNER_COLOR = {

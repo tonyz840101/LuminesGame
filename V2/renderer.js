@@ -128,15 +128,24 @@ class Renderer {
         let renderC1 = []
         let renderC2 = []
         const groupHandler = this.game.groupHandler
-        const { C1, C2 } = groupHandler.getBoard()
+        const {
+            C1,
+            C2
+        } = groupHandler.getBoard()
         for (let c = 0; c < this.column - 1; c++) {
             // for (let r = this.row - 2; r >= 0; r--) {
             for (let r = 0; r < this.row - 1; r++) {
                 const y = this.row - r + this.adjustY
                 if (C1[c][r] !== -1)
-                    renderC1.push({ x: (this.adjustX + c) * this.unit, y: y * this.unit })
+                    renderC1.push({
+                        x: (this.adjustX + c) * this.unit,
+                        y: y * this.unit
+                    })
                 if (C2[c][r] !== -1)
-                    renderC2.push({ x: (this.adjustX + c) * this.unit, y: y * this.unit })
+                    renderC2.push({
+                        x: (this.adjustX + c) * this.unit,
+                        y: y * this.unit
+                    })
             }
         }
         this.drawGroupBlocks(this.colorProvider.enum.C1, renderC1)
@@ -218,15 +227,24 @@ class Renderer {
             let currentC2 = this.game.board.C2[c]
             for (let r = 0; r < this.row; r++) {
                 if (currentC1 & 1 === 1) {
-                    renderC1.push({ x: (this.adjustX + c) * this.unit, y: (this.adjustY + 1 + this.row - r) * this.unit })
+                    renderC1.push({
+                        x: (this.adjustX + c) * this.unit,
+                        y: (this.adjustY + 1 + this.row - r) * this.unit
+                    })
                 } else if (currentC2 & 1 === 1) {
-                    renderC2.push({ x: (this.adjustX + c) * this.unit, y: (this.adjustY + 1 + this.row - r) * this.unit })
+                    renderC2.push({
+                        x: (this.adjustX + c) * this.unit,
+                        y: (this.adjustY + 1 + this.row - r) * this.unit
+                    })
                 }
                 currentC1 >>= 1
                 currentC2 >>= 1
             }
         }
-        return { renderC1, renderC2 }
+        return {
+            renderC1,
+            renderC2
+        }
     }
 
     renderEffect(deltaTime) {
@@ -257,18 +275,25 @@ class Renderer {
                 this.hCtx.clearRect(0, 0, this.hCanvas.width, this.hCanvas.height)
                 //render falling
                 {
-                    let { renderC1, renderC2 } = this.getRenderBlocks(true)
+                    let {
+                        renderC1,
+                        renderC2
+                    } = this.getRenderBlocks(true)
                     this.drawBlocks(this.colorProvider.enum.C1, renderC1, true, false)
                     this.drawBlocks(this.colorProvider.enum.C2, renderC2, true, false)
                     this.drawGroups()
                 }
                 this.renderEffect(deltaTime)
-                this.renderScanner(game.scanner, 1 - game.scannerCounter / game.scanTick, game.scannerScore)
+                this.renderScanner(game.scanner.position, 1 - game.scanner.process(), game.scanner.currentScore)
                 break
             case gameState.result:
                 this.hCtx.clearRect(0, 0, this.hCanvas.width, this.hCanvas.height)
+                //
                 {
-                    let { renderC1, renderC2 } = this.getRenderBlocks(false)
+                    let {
+                        renderC1,
+                        renderC2
+                    } = this.getRenderBlocks(false)
                     this.drawBlocks(this.colorProvider.enum.C1, renderC1, true, false)
                     this.drawBlocks(this.colorProvider.enum.C2, renderC2, true, false)
                     this.drawGroups()
@@ -293,7 +318,7 @@ class Renderer {
     renderGroupedEffect(x, y, process) {
         const xBase = (x + this.adjustX - process) * this.unit
         const yBase = (y + this.adjustY - process) * this.unit
-        this.hCtx.strokeStyle = 'rgba(255, 255, 255, ' + (0.5 - (process / 2)) + ')'//'rgba(255, 255, 0, 0.9)'
+        this.hCtx.strokeStyle = 'rgba(255, 255, 255, ' + (0.5 - (process / 2)) + ')' //'rgba(255, 255, 0, 0.9)'
         this.hCtx.lineWidth = this.shade + 1
         this.hCtx.beginPath()
         this.hCtx.rect(xBase + this.shade / 2, yBase + this.shade / 2, (2 * process + 2) * this.unit - this.shade, (2 * process + 2) * this.unit - this.shade)
