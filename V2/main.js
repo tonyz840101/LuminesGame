@@ -29,15 +29,15 @@ document.addEventListener("keydown", (e) => game.handleKeyDown(e), false);
 document.addEventListener("keyup", (e) => game.handleKeyUp(e), false);
 
 const c2 = ((colorHexStr) => {
-    let intColor = parseInt(colorHexStr.slice(1), 16)
+    const intColor = parseInt(colorHexStr.slice(1), 16)
     if (isNaN(intColor)) {
         console.error('C2 parseInt failed')
     }
-    let ctR = intColor >> 16
-    let ctG = (intColor % (1 << 16)) >> 8
-    let ctB = intColor % (1 << 8)
-    let ct = `rgba(${ctR}, ${ctG}, ${ctB}, 0.5)`
-    console.log(colorHexStr, ct)
+    const ctR = intColor >> 16
+    const ctG = (intColor % (1 << 16)) >> 8
+    const ctB = intColor % (1 << 8)
+    const ct = `rgba(${ctR}, ${ctG}, ${ctB}, 0.5)`
+    // console.log(colorHexStr, ct)
     return {
         o: colorHexStr,
         t: ct
@@ -85,8 +85,4 @@ game.subscribe((e) => {
     }
 })
 //start game loop
-const tick = 1000 / 25
-
-//render
-// function
-//     requestAnimationFrame
+// const tick = 1000 / 25
