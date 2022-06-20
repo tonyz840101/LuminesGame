@@ -58,7 +58,8 @@ const colorProvider = new ObjColor({
 
 const renderer = new Renderer(
     document.getElementById("lowFreq"),
-    document.getElementById("highFreq"), {
+    document.getElementById("highFreq"),
+    {
         adjustX: 4,
         adjustY: 2,
         column: 16,

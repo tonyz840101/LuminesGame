@@ -418,11 +418,21 @@ const Game =
         this.fillBlank = (clearMask) => {
             let changed = false
             for (let c = 0; c < this.column - 1; c++) {
-                if (clearMask === 0) continue
+                if (clearMask[c] === 0) {
+                    // console.log('clearMask empty')
+                    continue
+                } else {
+                    console.log(`clearMask ${clearMask.toString(2)}`)
+                }
                 let currnetColumn = this.board.C1[c] | this.board.C2[c]
                 let mask = 1
-                if (currnetColumn === 0) continue
-                console.log(currnetColumn.toString(2))
+                if (currnetColumn === 0) {
+                    // console.log('currnetColumn empty')
+                    continue
+                } else {
+                    console.log(`currnetColumn ${currnetColumn.toString(2)}`)
+                }
+                console.log(`x ${c}`)
                 for (let r = 0; r < this.row; r++) {
                     if ((currnetColumn & mask) === 0) {
                         console.log('find hole')
@@ -430,20 +440,29 @@ const Game =
                         const base = currnetColumn & ~reversedMask
                         let tail = currnetColumn & reversedMask
                         if (tail === 0) break
-                        tail >>= 1
+                        console.log(`processing base: ${base.toString(2)}`)
+                        console.log(`processing tail: ${tail.toString(2)}`)
                         let a = 0
-                        console.log(tail)
-                        while ((tail & 1) === 0) {
+                        while ((tail & (1 << r)) === 0) {
                             a++
                             tail >>= 1
-                            console.log(tail)
+                            if (a > this.row) {
+                                console.error('shifting error1!!')
+                                break
+                            }
+                        }
+                        console.log(`shifting ${a}`)
+                        if (a === 0) {
+                            console.error('shifting error2!!')
+                            break
                         }
                         this.board.C1[c] = (this.board.C1[c] & ~reversedMask) | this.board.C1[c] >> a
                         this.board.C2[c] = (this.board.C2[c] & ~reversedMask) | this.board.C2[c] >> a
-                        currnetColumn = tail << 1 | base
+                        currnetColumn = tail | base
+                        console.log(`done! C1: ${this.board.C1[c].toString(2)}`)
+                        console.log(`done! C2: ${this.board.C2[c].toString(2)}`)
                         changed = true
                         console.log(currnetColumn.toString(2))
-                        r = +a
                     }
                     mask <<= 1
                 }
@@ -914,7 +933,8 @@ const GroupHandler = function (column, row) {
     }
 }
 
-const offset = [{
+const offset = [
+    {
         x: 0,
         y: 0
     },
